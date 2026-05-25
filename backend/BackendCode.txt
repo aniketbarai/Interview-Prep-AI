@@ -1,0 +1,48 @@
+dotenv is a package in Node.js used to load environment variables from a .env file into your application.
+
+ ---{ require("dotenv").config(); }---
+
+This line tells Node.js to:
+  > Import the dotenv package
+  > Read the .env file
+  > Store all variables inside process.env
+
+Why is it Needed?
+
+> In real projects, we should not directly write sensitive data inside code.
+Examples:
+
+Database password
+API keys
+Secret tokens
+Email passwords
+Port numbers
+
+Instead, we store them in a separate .env file.
+
+> What is CORS ?
+
+| Term       | Meaning                                     |
+| ---------- | ------------------------------------------- |
+| CORS       | Cross-Origin Resource Sharing               |
+| Purpose    | Allow/block requests from different origins |
+| Used In    | Frontend-backend communication              |
+| Middleware | `cors` package in Express.js                |
+
+----------------------------------
+JWT (JSON Web Token)
+
+JWT is an authentication token used to verify users securely between frontend and backend.
+It is commonly used in:
+>Login systems
+>Authentication
+>Authorization
+
+----------------------------------
+Multer in Node.js
+
+multer is a middleware used in Express.js to upload files.
+Mostly used for:
+> Image upload
+> PDF upload
+> File handling
