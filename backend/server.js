@@ -16,7 +16,7 @@ const app = express();
 // Middleware t handle cors
 app.use(
     cors({
-        origin:"*",
+        origin:"https://interview-prep-ai-rho.vercel.app",
         methods: ["GET","POST","PUT","DELETE"],
         allowedHeaders: ["Content-Type","Authorization"]
     })
