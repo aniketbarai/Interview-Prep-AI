@@ -1,408 +1,160 @@
 import React, { useState } from "react";
 
-// =====================================================
-// ICONS
-// =====================================================
-import {
-  LuCopy,
-  LuCheck,
-  LuCode,
-} from "react-icons/lu";
+// Icons
+import { LuCopy, LuCheck, LuCode } from "react-icons/lu";
 
-// =====================================================
-// MARKDOWN RENDERER
-// ReactMarkdown -> renders markdown as HTML
-// remarkGfm -> enables GitHub markdown features
-// =====================================================
+// Markdown renderer
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// =====================================================
-// CODE SYNTAX HIGHLIGHTER
-// =====================================================
+// Code highlighter
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-
-import { oneLight } from
-  "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 // =====================================================
-// AI RESPONSE PREVIEW COMPONENT
-// Renders markdown response from AI
+// MAIN COMPONENT
 // =====================================================
 const AIResponsePreview = ({ content }) => {
-
-  // ===================================================
-  // IF NO CONTENT AVAILABLE
-  // ===================================================
+  // fallback UI when no content
   if (!content) {
-
     return (
-
-      <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-xl shadow-sm">
-
-        <p className="text-yellow-700 text-sm leading-relaxed">
-
-          The AI response is being formatted.
-          If this takes too long,
-          please regenerate the explanation.
-
+      <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-xl">
+        <p className="text-yellow-700 text-sm">
+          AI response is loading or not available.
         </p>
-
       </div>
     );
   }
 
-  // ===================================================
-  // MAIN UI
-  // ===================================================
   return (
-
-    <div className="max-w-4xl mx-auto">
-
-      {/* ===============================================
-          PROSE -> typography styles
-      =============================================== */}
-      <div className="text-[14px] prose prose-slate max-w-none">
+    <div className="w-full max-w-full overflow-x-hidden">
+      
+      {/* Markdown wrapper */}
+      <div className="text-[14px] sm:text-[15px] prose prose-slate max-w-none break-words">
 
         <ReactMarkdown
-
-          // Enable tables, tasklists, strikethrough etc
           remarkPlugins={[remarkGfm]}
-
-          // ===========================================
-          // CUSTOM COMPONENT RENDERERS
-          // ===========================================
           components={{
 
-            // =========================================
-            // CODE BLOCKS
-            // =========================================
-            code({
-              className,
-              children,
-              ...props
-            }) {
+            // CODE HANDLER
+            code({ className, children }) {
+              const match = /language-(\w+)/.exec(className || "");
+              const language = match ? match[1] : "";
+              const isInline = !className;
 
-              // Extract language from markdown
-              // Example:
-              // ```js
-              // becomes language-js
-              const match =
-                /language-(\w+)/.exec(
-                  className || ""
+              if (isInline) {
+                return (
+                  <code className="px-1 py-0.5 bg-gray-100 rounded text-pink-600 text-sm break-words">
+                    {children}
+                  </code>
                 );
+              }
 
-              const language =
-                match
-                  ? match[1]
-                  : "";
-
-              // Inline code check
-              const isInline =
-                !className;
-
-              // =====================================
-              // MULTI-LINE CODE BLOCK
-              // =====================================
-              return !isInline ? (
-
+              return (
                 <CodeBlock
-                  code={String(children)
-                    .replace(/\n$/, "")}
-
+                  code={String(children).replace(/\n$/, "")}
                   language={language}
                 />
-
-              ) : (
-
-                // ===================================
-                // INLINE CODE
-                // Example: `npm install`
-                // ===================================
-                <code
-                  className="px-1.5 py-0.5 bg-gray-100 rounded text-sm text-pink-600 font-medium"
-
-                  {...props}
-                >
-                  {children}
-                </code>
               );
             },
 
-            // =========================================
-            // PARAGRAPH
-            // =========================================
+            // PARAGRAPH (mobile safe)
             p({ children }) {
-
               return (
-                <p className="mb-4 leading-7 text-gray-700">
-
+                <p className="mb-3 leading-7 text-gray-700 break-words">
                   {children}
-
                 </p>
               );
             },
 
-            // =========================================
-            // BOLD TEXT
-            // =========================================
             strong({ children }) {
-
-              return (
-                <strong className="font-bold text-black">
-
-                  {children}
-
-                </strong>
-              );
+              return <strong className="font-semibold text-black">{children}</strong>;
             },
 
-            // =========================================
-            // ITALIC TEXT
-            // =========================================
             em({ children }) {
-
-              return (
-                <em className="italic text-gray-700">
-
-                  {children}
-
-                </em>
-              );
+              return <em className="italic text-gray-700">{children}</em>;
             },
 
-            // =========================================
-            // UNORDERED LIST
-            // =========================================
             ul({ children }) {
-
-              return (
-                <ul className="list-disc pl-6 space-y-2 my-4">
-
-                  {children}
-
-                </ul>
-              );
+              return <ul className="list-disc pl-5 my-3 space-y-2">{children}</ul>;
             },
 
-            // =========================================
-            // ORDERED LIST
-            // =========================================
             ol({ children }) {
-
-              return (
-                <ol className="list-decimal pl-6 space-y-2 my-4">
-
-                  {children}
-
-                </ol>
-              );
+              return <ol className="list-decimal pl-5 my-3 space-y-2">{children}</ol>;
             },
 
-            // =========================================
-            // LIST ITEM
-            // =========================================
             li({ children }) {
-
-              return (
-                <li className="leading-7 text-gray-700">
-
-                  {children}
-
-                </li>
-              );
+              return <li className="text-gray-700 leading-7">{children}</li>;
             },
 
-            // =========================================
-            // BLOCKQUOTE
-            // =========================================
             blockquote({ children }) {
-
               return (
-
-                <blockquote className="border-l-4 border-blue-400 bg-blue-50 pl-4 py-2 italic my-5 rounded-r-lg text-gray-700">
-
+                <blockquote className="border-l-4 border-blue-400 bg-blue-50 pl-4 py-2 my-4 rounded-r-lg text-gray-700">
                   {children}
-
                 </blockquote>
               );
             },
 
-            // =========================================
-            // HEADINGS
-            // =========================================
+            // HEADINGS (responsive scaling)
             h1({ children }) {
-
               return (
-                <h1 className="text-3xl font-bold mt-8 mb-5 text-black">
-
+                <h1 className="text-2xl sm:text-3xl font-bold mt-6 mb-4">
                   {children}
-
                 </h1>
               );
             },
 
             h2({ children }) {
-
               return (
-                <h2 className="text-2xl font-bold mt-7 mb-4 text-black">
-
+                <h2 className="text-xl sm:text-2xl font-bold mt-5 mb-3">
                   {children}
-
                 </h2>
               );
             },
 
             h3({ children }) {
-
               return (
-                <h3 className="text-xl font-semibold mt-6 mb-3 text-black">
-
+                <h3 className="text-lg sm:text-xl font-semibold mt-4 mb-2">
                   {children}
-
                 </h3>
               );
             },
 
-            h4({ children }) {
-
-              return (
-                <h4 className="text-lg font-semibold mt-5 mb-2 text-black">
-
-                  {children}
-
-                </h4>
-              );
-            },
-
-            // =========================================
             // LINKS
-            // =========================================
             a({ children, href }) {
-
               return (
-
                 <a
                   href={href}
-
                   target="_blank"
-
                   rel="noopener noreferrer"
-
-                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                  className="text-blue-600 hover:underline"
                 >
-
                   {children}
-
                 </a>
               );
             },
 
-            // =========================================
-            // TABLE
-            // =========================================
+            // TABLE (mobile scroll safe)
             table({ children }) {
-
               return (
-
-                <div className="overflow-x-auto my-5 border border-gray-200 rounded-xl">
-
-                  <table className="min-w-full">
-
-                    {children}
-
-                  </table>
-
+                <div className="overflow-x-auto my-4 border rounded-lg">
+                  <table className="min-w-full">{children}</table>
                 </div>
               );
             },
 
-            thead({ children }) {
-
-              return (
-                <thead className="bg-gray-100">
-
-                  {children}
-
-                </thead>
-              );
-            },
-
-            tbody({ children }) {
-
-              return (
-                <tbody className="divide-y divide-gray-200">
-
-                  {children}
-
-                </tbody>
-              );
-            },
-
-            tr({ children }) {
-
-              return (
-                <tr className="hover:bg-gray-50 transition-colors">
-
-                  {children}
-
-                </tr>
-              );
-            },
-
-            th({ children }) {
-
-              return (
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-600">
-
-                  {children}
-
-                </th>
-              );
-            },
-
-            td({ children }) {
-
-              return (
-                <td className="px-4 py-3 text-sm text-gray-700">
-
-                  {children}
-
-                </td>
-              );
-            },
-
-            // =========================================
-            // HORIZONTAL LINE
-            // =========================================
-            hr() {
-
-              return (
-                <hr className="my-8 border-gray-200" />
-              );
-            },
-
-            // =========================================
-            // IMAGE
-            // =========================================
             img({ src, alt }) {
-
               return (
-
                 <img
                   src={src}
                   alt={alt}
-
-                  className="my-5 rounded-xl shadow-md max-w-full"
+                  className="max-w-full h-auto rounded-lg my-4"
                 />
               );
             },
           }}
         >
-
-          {/* Markdown Content */}
           {content}
-
         </ReactMarkdown>
 
       </div>
@@ -412,107 +164,53 @@ const AIResponsePreview = ({ content }) => {
 
 // =====================================================
 // CODE BLOCK COMPONENT
-// Shows:
-// - Syntax highlighting
-// - Copy button
-// - Language label
 // =====================================================
-function CodeBlock({
-  code,
-  language,
-}) {
+function CodeBlock({ code, language }) {
+  const [copied, setCopied] = useState(false);
 
-  // Copy state
-  const [copied, setCopied] =
-    useState(false);
-
-  // ===================================================
-  // COPY CODE FUNCTION
-  // ===================================================
   const copyCode = () => {
-
     navigator.clipboard.writeText(code);
-
     setCopied(true);
-
-    // Reset after 2 seconds
-    setTimeout(() => {
-
-      setCopied(false);
-
-    }, 2000);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-
-    <div className="relative my-6 border border-gray-200 rounded-2xl overflow-hidden shadow-sm bg-white">
-
-      {/* ===============================================
-          TOP BAR
-      =============================================== */}
-      <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
-
-        {/* LEFT SIDE */}
-        <div className="flex items-center gap-2">
-
-          <LuCode
-            size={16}
-            className="text-gray-500"
-          />
-
-          <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
-
-            {language || "Code"}
-
+    <div className="my-5 border rounded-xl overflow-hidden bg-white w-full max-w-full">
+      
+      {/* top bar */}
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-gray-50">
+        <div className="flex items-center gap-2 text-xs sm:text-sm">
+          <LuCode />
+          <span className="uppercase text-gray-600">
+            {language || "code"}
           </span>
-
         </div>
 
-        {/* COPY BUTTON */}
-        <button
-          onClick={copyCode}
-
-          className="text-gray-500 hover:text-black transition-colors relative"
-
-          aria-label="Copy code"
-        >
-
+        <button onClick={copyCode} className="text-gray-600 hover:text-black">
           {copied ? (
-
-            <LuCheck
-              size={17}
-              className="text-green-600"
-            />
-
+            <LuCheck className="text-green-600" />
           ) : (
-
-            <LuCopy size={17} />
-
+            <LuCopy />
           )}
         </button>
       </div>
 
-      {/* ===============================================
-          CODE HIGHLIGHTER
-      =============================================== */}
-      <SyntaxHighlighter
-
-        language={language}
-
-        style={oneLight}
-
-        customStyle={{
-          fontSize: 13,
-          margin: 0,
-          padding: "1rem",
-          background: "transparent",
-        }}
-      >
-
-        {code}
-
-      </SyntaxHighlighter>
-
+      {/* code area (mobile scroll fix) */}
+      <div className="overflow-x-auto">
+        <SyntaxHighlighter
+          language={language}
+          style={oneLight}
+          customStyle={{
+            fontSize: 13,
+            margin: 0,
+            padding: "12px",
+            background: "transparent",
+            width: "100%",
+          }}
+        >
+          {code}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }
