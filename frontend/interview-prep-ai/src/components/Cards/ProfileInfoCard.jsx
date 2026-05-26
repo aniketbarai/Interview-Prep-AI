@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { UserContext } from '../../context/userContext'
 import { useNavigate } from 'react-router-dom';
+import Avatar from '../Avatar'
 
 const ProfileInfoCard = () => {
     const { user,clearUser } = useContext(UserContext);
@@ -11,14 +12,16 @@ const ProfileInfoCard = () => {
         navigate("/")
     }
   return (
-    <div className="flex items-center">
-        <img src={user?.profileImageUrl} 
-        alt=""
-        className='w-11 h-11 bg-gray-300 rounded-full mr-3'
+    <div className="flex items-center gap-3">
+        <Avatar
+          name={user?.name || ''}
+          image={user?.profileImageUrl || ''}
+          size="md"
+          className="mr-3"
         />
         <div>
-            <div className="">
-                {user?.name || ""}
+            <div className="text-sm font-medium text-slate-900">
+                {user?.name || "User"}
             </div>
             <button
             className='text-amber-600 text-sm font-semibold cursor-pointer hover:underline'

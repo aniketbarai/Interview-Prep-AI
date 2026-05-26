@@ -17,12 +17,15 @@ const SignUp = ({setCurrentPage}) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const {updateUser} = useContext(UserContext)
 
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+
     if(!fullName){
        setError("Please enter full name")
        return
@@ -32,12 +35,12 @@ const SignUp = ({setCurrentPage}) => {
       return
       }
     if(!password) {
-    setError("Plesase enter the password.")
+    setError("Please enter the password.")
     return;
   }
   setError("")
+  setIsLoading(true)
 
-  // signUpApi call
   try {
       let profileImageUrl = "";
       // Upload profile image if selected
@@ -63,7 +66,9 @@ const SignUp = ({setCurrentPage}) => {
         navigate("/dashboard");
       }
   } catch (error) {
-      setError(error.response.data.message)
+      setError(error?.response?.data?.message || "Unable to create your account. Please try again.")
+  } finally {
+      setIsLoading(false)
   }
   };
 
@@ -119,9 +124,21 @@ const SignUp = ({setCurrentPage}) => {
           {error && <p className='text-red-500 text-xs md:col-span-2'>{error}</p>}
 
           <div className="md:col-span-2 mt-2">
-            <button type='submit' className='btn-primary w-full py-3'>
-              SIGN UP
+            <button
+              type='submit'
+              disabled={isLoading}
+              className={`btn-primary w-full py-3 flex items-center justify-center transition duration-200 ease-in-out ${isLoading ? 'opacity-70 cursor-not-allowed bg-slate-900/90 hover:bg-slate-900/90 hover:text-white' : 'hover:shadow-orange-600/20'}`}
+            >
+              {isLoading && (
+                <span className='inline-flex items-center justify-center h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2' />
+              )}
+              {isLoading ? 'Creating account...' : 'Sign Up'}
             </button>
+
+            {isLoading && (
+              <p className='text-[13px] text-slate-600 mt-2'>Creating your account securely...</p>
+            )}
+
             <p className='text-[13px] text-slate-800 mt-4 text-center'>
               Already have an account?{" "}
               <button 
