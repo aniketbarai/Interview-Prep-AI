@@ -41,7 +41,7 @@ The system is built for **serious interview preparation**, moving away from pass
 - **Frontend:** React.js, Vite, Tailwind CSS, Context API
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB (Mongoose)
-- **AI Engine:** Google Gemini Pro API
+- **AI Engine:** OpenAI / OpenRouter API
 - **Security:** JWT (JSON Web Tokens), Bcrypt
 
 ---
