@@ -10,6 +10,7 @@ import RoleInfoHeader from "./components/RoleInfoHeader";
 import QuestionCard from "../../components/Cards/QuestionCard";
 import Drawer from "../../components/Drawer";
 import SpinnerLoader from "../../components/Loader/SpinnerLoader";
+import LoadingMessage from "../../components/Loader/LoadingMessage";
 import AIResponsePreview from "./components/AIResponsePreview";
 
 import axiosInstance from "../../utils/axiosInstance";
@@ -23,15 +24,23 @@ const InterviewPrep = () => {
   const [openLearnMoreDrawer, setOpenLearnMoreDrawer] = useState(false);
   const [explanation, setExplanation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(
+    "Loading interview session..."
+  );
 
   const fetchSessionDetailsById = async () => {
     try {
+      setLoadingMessage("Loading interview session...");
+      setIsLoading(true);
+
       const res = await axiosInstance.get(
         API_PATHS.SESSION.GET_ONE(sessionId)
       );
       if (res.data?.session) setSessionData(res.data.session);
     } catch (err) {
       toast.error("Failed to fetch session");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -39,6 +48,7 @@ const InterviewPrep = () => {
     try {
       setErrorMsg("");
       setExplanation(null);
+      setLoadingMessage("Preparing explanation...");
       setIsLoading(true);
       setOpenLearnMoreDrawer(true);
 
@@ -83,6 +93,7 @@ const InterviewPrep = () => {
 
   const uploadMoreQuestions = async () => {
     try {
+      setLoadingMessage("Generating AI questions...");
       setIsLoading(true);
 
       const aiResponse = await axiosInstance.post(
@@ -156,6 +167,10 @@ const InterviewPrep = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
           {/* Questions */}
           <div className="md:col-span-8 lg:col-span-7">
+            {isLoading && !openLearnMoreDrawer && (
+              <LoadingMessage message={loadingMessage} />
+            )}
+
             <AnimatePresence>
               {sessionData?.questions?.map((q, index) => (
                 <motion.div
@@ -208,7 +223,7 @@ const InterviewPrep = () => {
         onClose={() => setOpenLearnMoreDrawer(false)}
         title={!isLoading && explanation?.title}
       >
-        {isLoading && <SpinnerLoader />}
+        {isLoading && <LoadingMessage message={loadingMessage} />}
 
         {errorMsg && (
           <p className="flex gap-2 text-sm text-amber-600">

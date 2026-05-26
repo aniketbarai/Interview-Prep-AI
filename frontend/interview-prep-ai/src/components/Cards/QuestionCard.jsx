@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LuChevronDown, LuPin, LuPinOff, LuSparkles } from "react-icons/lu";
+import {
+  LuChevronDown,
+  LuPin,
+  LuPinOff,
+  LuSparkles,
+} from "react-icons/lu";
 import AIResponsePreview from "../../pages/InterviewPrep/components/AIResponsePreview";
 
 const QuestionCard = ({
@@ -49,7 +54,7 @@ const QuestionCard = ({
         {/* ACTIONS */}
         <div className="flex items-center gap-2 sm:gap-3 ml-2">
 
-          {/* PIN */}
+          {/* PIN BUTTON */}
           <button
             onClick={onTogglePin}
             className="
@@ -70,14 +75,14 @@ const QuestionCard = ({
             )}
           </button>
 
-          {/* LEARN MORE */}
+          {/* LEARN MORE BUTTON (FIXED RESPONSIVE) */}
           <button
             onClick={() => {
               setIsExpanded(true);
               onLearnMore();
             }}
             className="
-              hidden sm:flex items-center gap-1
+              flex items-center gap-1
               text-xs font-medium
               px-2 sm:px-3 py-1
               rounded
@@ -88,7 +93,9 @@ const QuestionCard = ({
             "
           >
             <LuSparkles />
-            Learn
+
+            {/* text only on desktop */}
+            <span className="hidden sm:inline">Learn</span>
           </button>
 
           {/* TOGGLE */}

@@ -18,7 +18,7 @@ import SummaryCard from "../../components/Cards/SummaryCard";
 import Modal from "../../components/Modal";
 import CreateSessionForm from "./CreateSessionForm";
 import DeleteAlertContent from "../../components/DeleteAlertContent";
-import SpinnerLoader from "../../components/Loader/SpinnerLoader";
+import LoadingMessage from "../../components/Loader/LoadingMessage";
 
 // API
 import axiosInstance from "../../utils/axiosInstance";
@@ -103,7 +103,7 @@ const Dashboard = () => {
         {/* LOADING */}
         {isLoading && (
           <div className="flex justify-center py-16">
-            <SpinnerLoader size={40} />
+            <LoadingMessage message="Loading interview session..." />
           </div>
         )}
 
