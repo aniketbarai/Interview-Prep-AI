@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { signInWithPopup } from "firebase/auth";
 import { toast } from "react-hot-toast";
-
+import { GoogleAuthProvider } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
@@ -12,62 +12,42 @@ const GoogleButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { updateUser } = useContext(UserContext);
 
-  const handleGoogleLogin = async () => {
-    if (isLoading) return; // prevent spam clicks
+ const handleGoogleLogin = async () => {
+  try {
+    setIsLoading(true);
 
-    try {
-      setIsLoading(true);
+    // 1. Google popup
+    const result = await signInWithPopup(auth, googleProvider);
 
-      // Firebase popup login
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
+    // 2. Get ID token (THIS is what backend needs)
+    const idToken = await result.user.getIdToken();
 
-      if (!user?.email) {
-        toast.error("Google account not found");
-        return;
+    // 3. Send token to backend
+    const response = await axiosInstance.post(
+      API_PATHS.AUTH.GOOGLE_LOGIN,
+      {
+        credential: idToken,
       }
+    );
 
-      // Send to backend
-      const response = await axiosInstance.post(
-        API_PATHS.AUTH.GOOGLE_LOGIN,
-        {
-          name: user.displayName,
-          email: user.email,
-          profileImage: user.photoURL,
-          googleId: user.uid,
-        }
-      );
+    // 4. Save JWT
+    if (response.data?.token) {
+      localStorage.setItem("token", response.data.token);
 
-      const data = response?.data;
+      updateUser(response.data);
 
-      if (!data?.token) {
-        toast.error("Login failed. Try again.");
-        return;
-      }
+      toast.success("Login successful");
 
-      // Save token
-      localStorage.setItem("token", data.token);
-
-      // Update user context safely
-      if (data?.user) {
-        updateUser(data.user);
-      }
-
-      toast.success("Welcome back 👋");
-
-      // Better than full reload
       window.location.href = "/dashboard";
-    } catch (error) {
-      console.error("Google Login Error:", error);
-
-      toast.error(
-        error?.response?.data?.message ||
-          "Google login failed"
-      );
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Google login failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <motion.button
