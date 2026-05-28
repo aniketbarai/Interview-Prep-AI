@@ -9,6 +9,7 @@ import { UserContext } from '../../context/userContext';
 import { API_PATHS } from '../../utils/apiPaths';
 import axiosInstance from '../../utils/axiosInstance';
 import uploadImage from '../../utils/uploadImage';
+import GoogleButton from './GoogleButton';
 
 const SignUp = ({setCurrentPage}) => {
 
@@ -87,7 +88,10 @@ const SignUp = ({setCurrentPage}) => {
     <div className="w-[95vw] max-w-[600px] md:w-auto p-8 flex flex-col justify-start bg-white rounded-xl shadow-sm">
       <h3 className="text-xl font-semibold text-black">Create an Account</h3>
       <p className='text-sm text-slate-700 mb-6'>Join us today by entering your details below.</p>
-
+      <div className='flex flex-col items-center gap-5 p-2'>
+        <GoogleButton />
+        <h2 className='text-gray-600'>OR</h2>
+      </div>
       <form onSubmit={handleSignUp}>
         <div className="flex flex-col items-center mb-6">
           <ProfilePhoto image={profilePic} setImage={setProfilePic} />

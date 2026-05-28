@@ -6,6 +6,7 @@ import { validateEmail } from '../../utils/helper';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { UserContext } from '../../context/userContext';
+import GoogleButton from './GoogleButton';
 
 const Login = ({ setCurrentPage }) => {
 
@@ -66,6 +67,10 @@ const Login = ({ setCurrentPage }) => {
       <p className="text-xs text-slate-700 mb-6">
         Please enter your details to log in
       </p>
+      <div className='flex flex-col items-center gap-5'>
+        <GoogleButton />
+        <h2 className='text-gray-600'>OR</h2>
+      </div>
       <form onSubmit={handleLogin}>
         <Input 
           value={email}
