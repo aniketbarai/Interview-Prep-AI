@@ -119,19 +119,18 @@ const getUserProfile = async (req, res) => {
 // ==============================
 const googleAuth = async (req, res) => {
   try {
-    const { credential } = req.body;
+   const { token } = req.body;
 
-    if (!credential) {
-      return res.status(400).json({
-        message: "Google token missing",
-      });
-    }
+if (!token) {
+  return res.status(400).json({
+    message: "Google token missing",
+  });
+}
 
-    // VERIFY GOOGLE TOKEN
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+const ticket = await client.verifyIdToken({
+  idToken: token,
+  audience: process.env.GOOGLE_CLIENT_ID,
+});
 
     const payload = ticket.getPayload();
 
