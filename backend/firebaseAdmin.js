@@ -2,15 +2,32 @@
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-const privateKey = process.env.FIREBASE_PRIVATE_KEY
-  ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
-  : undefined;
+const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+const privateKey = rawPrivateKey ? rawPrivateKey.replace(/\\n/g, "\n") : undefined;
 
-if (!projectId || !clientEmail || !privateKey) {
+const missing = [];
+if (!projectId) missing.push("FIREBASE_PROJECT_ID");
+if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
+if (!rawPrivateKey) missing.push("FIREBASE_PRIVATE_KEY");
+
+if (missing.length) {
   console.error(
-    "Firebase Admin initialization failed. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY."
+    "Firebase Admin initialization failed. Missing env vars:",
+    missing.join(", ")
   );
+  console.error("Current env presence:", {
+    hasProjectId: !!projectId,
+    hasClientEmail: !!clientEmail,
+    hasPrivateKeyRaw: !!rawPrivateKey,
+    hasPrivateKeyNormalized: !!privateKey,
+  });
   throw new Error("Firebase Admin credentials are not fully configured.");
+}
+
+if (privateKey && !privateKey.includes("BEGIN PRIVATE KEY")) {
+  console.error(
+    "FIREBASE_PRIVATE_KEY does not look like a PEM. Verify Render env formatting (newlines)."
+  );
 }
 
 const adminApp = admin.apps.length
@@ -24,3 +41,4 @@ const adminApp = admin.apps.length
     });
 
 module.exports = adminApp;
+
