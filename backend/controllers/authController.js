@@ -1,10 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { OAuth2Client } = require("google-auth-library");
+const admin = require("../firebaseAdmin");
 
-// Google Client
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ==============================
 // JWT GENERATOR
@@ -119,30 +117,17 @@ const getUserProfile = async (req, res) => {
 // ==============================
 const googleAuth = async (req, res) => {
   try {
-    const { token: idToken } = req.body;
+    const { token } = req.body;
 
-    if (!idToken) {
-      return res.status(400).json({
-        message: "Google token missing",
-      });
+    if (!token) {
+      return res.status(400).json({ message: "Token missing" });
     }
 
-    // VERIFY GOOGLE TOKEN
-    const ticket = await client.verifyIdToken({
-      idToken: idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    // VERIFY FIREBASE TOKEN
+    const decoded = await admin.auth().verifyIdToken(token);
 
-    const payload = ticket.getPayload();
+    const { email, name, picture, uid } = decoded;
 
-    const {
-      email,
-      name,
-      picture,
-      sub: googleId,
-    } = payload;
-
-    // CHECK USER
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -150,33 +135,25 @@ const googleAuth = async (req, res) => {
         name,
         email,
         profileImageUrl: picture,
-        googleId,
+        googleId: uid,
         authProvider: "google",
-        password: null,
       });
-    } else {
-      if (!user.googleId) {
-        user.googleId = googleId;
-        user.authProvider = "google";
-        user.profileImageUrl = user.profileImageUrl || picture;
-        await user.save();
-      }
     }
 
-    // GENERATE JWT
-    const token = generateToken(user._id);
+    const jwtToken = generateToken(user._id);
 
-    return res.status(200).json({
+    return res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       profileImageUrl: user.profileImageUrl,
-      token,
+      token: jwtToken,
     });
+
   } catch (error) {
+    console.log("ERROR:", error);
     return res.status(500).json({
-      message: "Google authentication failed",
-      error: error.message,
+      message: error.message,
     });
   }
 };
