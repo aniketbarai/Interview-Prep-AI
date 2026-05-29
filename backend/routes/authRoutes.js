@@ -4,6 +4,7 @@ const {
   loginUser,
   getUserProfile,
   googleAuth,
+  deleteUploadedImage,
 } = require("../controllers/authController");
 
 const { protect } = require("../middlewares/authMiddleware");
@@ -44,6 +45,7 @@ router.post("/upload-image", upload.single("image"), (req, res) => {
     return res.status(200).json({
       success: true,
       imageUrl,
+      filename: req.file.filename,
     });
   } catch (error) {
     return res.status(500).json({
@@ -53,5 +55,7 @@ router.post("/upload-image", upload.single("image"), (req, res) => {
     });
   }
 });
+
+router.delete("/upload-image/:filename", protect, deleteUploadedImage);
 
 module.exports = router;
