@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       default: null,
-      index: true,
+      unique: true,
+      sparse: true, // important for null values
     },
 
     authProvider: {
@@ -46,19 +47,3 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// validation rules
-userSchema.pre("save", function (next) {
-  if (this.authProvider === "local" && !this.password) {
-    return next(new Error("Password required for local users"));
-  }
-
-  if (this.authProvider === "google") {
-    this.password = null;
-    this.emailVerified = true;
-  }
-
-  next();
-});
-
-module.exports = mongoose.model("User", userSchema);

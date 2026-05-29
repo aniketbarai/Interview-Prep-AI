@@ -1,3 +1,4 @@
+import axios from "axios";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 
@@ -6,10 +7,16 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
 
     const user = result.user;
-    console.log("Google User:", user);
 
-    return user;
+    // 🔥 IMPORTANT: send to backend
+    const token = await user.getIdToken();
+
+    await axios.post("http://localhost:5000/api/auth/google", {
+      token,
+    });
+
+    console.log("User sent to backend");
   } catch (error) {
-    console.error("Google login failed:", error.message);
+    console.error("Google login error:", error);
   }
 };
