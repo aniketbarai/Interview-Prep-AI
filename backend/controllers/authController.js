@@ -119,18 +119,19 @@ const getUserProfile = async (req, res) => {
 // ==============================
 const googleAuth = async (req, res) => {
   try {
-   const { token } = req.body;
+    const { token: idToken } = req.body;
 
-if (!token) {
-  return res.status(400).json({
-    message: "Google token missing",
-  });
-}
+    if (!idToken) {
+      return res.status(400).json({
+        message: "Google token missing",
+      });
+    }
 
-const ticket = await client.verifyIdToken({
-  idToken: token,
-  audience: process.env.GOOGLE_CLIENT_ID,
-});
+    // VERIFY GOOGLE TOKEN
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
     const payload = ticket.getPayload();
 
@@ -154,7 +155,6 @@ const ticket = await client.verifyIdToken({
         password: null,
       });
     } else {
-      // UPDATE EXISTING USER IF NEEDED
       if (!user.googleId) {
         user.googleId = googleId;
         user.authProvider = "google";
@@ -163,7 +163,7 @@ const ticket = await client.verifyIdToken({
       }
     }
 
-    // GENERATE TOKEN
+    // GENERATE JWT
     const token = generateToken(user._id);
 
     return res.status(200).json({
