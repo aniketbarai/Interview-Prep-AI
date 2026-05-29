@@ -1,54 +1,63 @@
-import React, { useState } from 'react'
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'
-import Input from "../../components/Input/Input"
-import ProfilePhoto from '../../components/Input/ProfilePhoto';
-import { validateEmail } from '../../utils/helper';
-import { useContext } from 'react';
-import { UserContext } from '../../context/userContext';
-import { API_PATHS } from '../../utils/apiPaths';
-import axiosInstance from '../../utils/axiosInstance';
-import uploadImage from '../../utils/uploadImage';
-import GoogleButton from './GoogleButton';
+import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LuCircleAlert } from "react-icons/lu";
 
-const SignUp = ({setCurrentPage}) => {
+import Input from "../../components/Input/Input";
+import ProfilePhoto from "../../components/Input/ProfilePhoto";
+import { validateEmail } from "../../utils/helper";
+import { UserContext } from "../../context/userContext";
+import { API_PATHS } from "../../utils/apiPaths";
+import axiosInstance from "../../utils/axiosInstance";
+import uploadImage from "../../utils/uploadImage";
+import GoogleButton from "./GoogleButton";
 
-    const [profilePic, setProfilePic] = useState(null);
-    const [fullName, setFullName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const {updateUser} = useContext(UserContext)
+const SignUp = ({ setCurrentPage }) => {
+  const [profilePic, setProfilePic] = useState(null);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const { updateUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+
     if (isLoading) return;
 
-    if(!fullName){
-       setError("Please enter full name")
-       return
+    if (!fullName) {
+      setError("Please enter your full name.");
+      return;
     }
-    if(!validateEmail(email)){
-       setError("Please enter a valid email address.")
-      return
-      }
-    if(!password) {
-    setError("Please enter the password.")
-    return;
-  }
-  setError("")
-  setIsLoading(true)
 
-  try {
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setError("");
+    setIsLoading(true);
+
+    try {
       let profileImageUrl = "";
-      // Upload profile image if selected
+
       if (profilePic) {
         const imgUploadRes = await uploadImage(profilePic);
-        profileImageUrl = imgUploadRes.imageUrl || "";
+        profileImageUrl = imgUploadRes?.imageUrl || "";
       }
+
       const response = await axiosInstance.post(
         API_PATHS.AUTH.REGISTER,
         {
@@ -62,95 +71,124 @@ const SignUp = ({setCurrentPage}) => {
       const { token } = response.data;
 
       if (token) {
-        // updateUser already stores token + user
+        localStorage.setItem("token", token);
         updateUser(response.data);
         navigate("/dashboard");
       }
-  } catch (error) {
-      setError(error?.response?.data?.message || "Unable to create your account. Please try again.")
-  } finally {
-      setIsLoading(false)
-  }
+    } catch (signupError) {
+      setError(
+        signupError?.response?.data?.message ||
+          "Unable to create your account. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  useEffect(() => {
-  // Disable scroll when the component mounts
-  document.body.style.overflow = 'hidden';
-
-  // Re-enable scroll when the component unmounts (cleanup function)
-  return () => {
-    document.body.style.overflow = 'unset';
-  };
-}, []);
 
   return (
-    /* Increased max-width to 600px for a more "card-like" feel on desktop */
-    <div className="w-[95vw] max-w-[600px] md:w-auto p-8 flex flex-col justify-start bg-white rounded-xl shadow-sm">
-      <h3 className="text-xl font-semibold text-black">Create an Account</h3>
-      <p className='text-sm text-slate-700 mb-6'>Join us today by entering your details below.</p>
-      <div className='flex flex-col items-center gap-5 p-2'>
-        <GoogleButton />
-        <h2 className='text-gray-600'>OR</h2>
+    // Changed from motion.div to a clean structural wrapper for layout stability
+    <div className="w-full max-w-xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="premium-badge mb-4 w-fit">
+          Create your account
+        </div>
+
+        <h3 className="text-2xl font-semibold text-slate-950 tracking-tight">
+          Start your interview prep
+        </h3>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Build your profile, save sessions, and unlock role-specific AI practice.
+        </p>
       </div>
-      <form onSubmit={handleSignUp}>
-        <div className="flex flex-col items-center mb-6">
+
+      {/* Google Signup */}
+      <div className="flex flex-col items-center gap-4">
+        <GoogleButton />
+
+        <div className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+          or sign up with email
+        </div>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSignUp} className="mt-6">
+        {/* Profile */}
+        <div className="mb-6 flex justify-center">
           <ProfilePhoto image={profilePic} setImage={setProfilePic} />
         </div>
 
-        {/* Changed grid-cols-1 to md:grid-cols-2 to utilize the horizontal space on desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-          <Input 
-            value={fullName}
-            onChange={({target})=> setFullName(target.value)}
-            label="Full Name"
-            placeholder="John"
-            type="text"
-          />
-          <Input 
-            value={email}
-            onChange={({target})=> setEmail(target.value)}
-            label="Email Address"
-            placeholder="john@example.com"
-            type="text"
-          />
-          
-          {/* Spanning password and error/button across both columns for visual weight */}
-          <div className="md:col-span-2">
-            <Input 
-              value={password}
-              onChange={({target})=> setPassword(target.value)}
-              label = "Password"
-              placeholder="Min 8 Characters"
-              type="password" 
+        {/* Inputs Grid */}
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div>
+            <Input
+              value={fullName}
+              onChange={({ target }) => setFullName(target.value)}
+              label="Full name"
+              placeholder="John Doe"
+              type="text"
+              autoComplete="name"
             />
           </div>
 
-          {error && <p className='text-red-500 text-xs md:col-span-2'>{error}</p>}
+          <div>
+            <Input
+              value={email}
+              onChange={({ target }) => setEmail(target.value)}
+              label="Email address"
+              placeholder="john@example.com"
+              type="email"
+              autoComplete="email"
+            />
+          </div>
 
-          <div className="md:col-span-2 mt-2">
+          <div className="md:col-span-2">
+            <Input
+              value={password}
+              onChange={({ target }) => setPassword(target.value)}
+              label="Password"
+              placeholder="Minimum 8 characters"
+              type="password"
+              autoComplete="new-password"
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="md:col-span-2 flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <LuCircleAlert className="mt-0.5 shrink-0" size={18} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Submit Action System */}
+          <div className="md:col-span-2 space-y-3 pt-1">
             <button
-              type='submit'
+              type="submit"
               disabled={isLoading}
-              className={`btn-primary w-full py-3 flex items-center justify-center transition duration-200 ease-in-out ${isLoading ? 'opacity-70 cursor-not-allowed bg-slate-900/90 hover:bg-slate-900/90 hover:text-white' : 'hover:shadow-orange-600/20'}`}
+              className="premium-button w-full disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoading && (
-                <span className='inline-flex items-center justify-center h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2' />
+                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
               )}
-              {isLoading ? 'Creating account...' : 'Sign Up'}
+              {isLoading ? "Creating account..." : "Sign up"}
             </button>
 
+            {/* Loading Text */}
             {isLoading && (
-              <p className='text-[13px] text-slate-600 mt-2'>Creating your account securely...</p>
+              <p className="text-center text-xs text-slate-500 animate-pulse">
+                Creating your account securely...
+              </p>
             )}
 
-            <p className='text-[13px] text-slate-800 mt-4 text-center'>
+            {/* Link back to login */}
+            <p className="text-center text-sm text-slate-600">
               Already have an account?{" "}
-              <button 
+              <button
                 type="button"
-                className='font-medium text-primary underline cursor-pointer'
-                onClick={()=> {
-                  setCurrentPage("login")
-                }}
+                onClick={() => setCurrentPage("login")}
+                className="font-semibold text-orange-600 underline decoration-orange-200 underline-offset-4 transition hover:text-orange-700"
               >
                 Login
               </button>
@@ -159,7 +197,7 @@ const SignUp = ({setCurrentPage}) => {
         </div>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default SignUp
+export default SignUp;

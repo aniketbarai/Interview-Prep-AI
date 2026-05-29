@@ -1,33 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LuSparkles } from "react-icons/lu";
 
-// Components
 import Input from "../../components/Input/Input";
 import SpinnerLoader from "../../components/Loader/SpinnerLoader";
 
-// API
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 
-// Create Session Form
 const CreateSessionForm = ({ onClose }) => {
-  // Form State
   const [formData, setFormData] = useState({
     role: "",
     experience: "",
     topicsToFocus: "",
     description: "",
   });
-
-  // Loading State
   const [isLoading, setIsLoading] = useState(false);
-
-  // Error State
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  // Handle input change
   const handleChange = (key, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -35,13 +27,11 @@ const CreateSessionForm = ({ onClose }) => {
     }));
   };
 
-  // Submit form
   const handleCreateSession = async (e) => {
     e.preventDefault();
 
     const { role, experience, topicsToFocus } = formData;
 
-    // Validation
     if (!role || !experience || !topicsToFocus) {
       setError("Please fill all required fields");
       return;
@@ -51,38 +41,28 @@ const CreateSessionForm = ({ onClose }) => {
     setIsLoading(true);
 
     try {
-      // Generate AI questions
-      const aiResponse = await axiosInstance.post(
-        API_PATHS.AI.GENERATE_QUESTIONS,
-        {
-          role,
-          experience,
-          topicsToFocus,
-          numberOfQuestions: 10,
-        }
-      );
+      const aiResponse = await axiosInstance.post(API_PATHS.AI.GENERATE_QUESTIONS, {
+        role,
+        experience,
+        topicsToFocus,
+        numberOfQuestions: 10,
+      });
 
-      const generatedQuestions = Array.isArray(aiResponse.data)
-        ? aiResponse.data
-        : [];
+      const generatedQuestions = Array.isArray(aiResponse.data) ? aiResponse.data : [];
 
-      // Create session
-      const response = await axiosInstance.post(
-        API_PATHS.SESSION.CREATE,
-        {
-          ...formData,
-          questions: generatedQuestions,
-          numberOfQuestions: 10,
-        }
-      );
+      const response = await axiosInstance.post(API_PATHS.SESSION.CREATE, {
+        ...formData,
+        questions: generatedQuestions,
+        numberOfQuestions: 10,
+      });
 
       if (response.data?.session?._id) {
-        onClose();
+        onClose?.();
         navigate(`/interview-prep/${response.data.session._id}`);
       }
-    } catch (error) {
+    } catch (createError) {
       setError(
-        error?.response?.data?.message ||
+        createError?.response?.data?.message ||
           "Something went wrong. Please try again."
       );
     } finally {
@@ -91,143 +71,92 @@ const CreateSessionForm = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="
-        w-full
-        sm:w-[92vw]
-        md:w-[700px]
-        lg:w-[850px]
-        max-h-[90vh]
-        overflow-y-auto
-        bg-white
-        rounded-2xl
-        p-5 sm:p-7 md:p-8
-      "
-    >
-      {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
-          Start New Interview Session
-        </h3>
+    // Changed to a clean structural wrapper so it blends into your Portal Modal beautifully
+    <div className="w-full">
+      {/* Header Info Banner Section */}
+      <div className="mb-6 flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff7ed_0%,#ffedd5_100%)] text-orange-600 shadow-sm">
+          <LuSparkles className="text-xl" />
+        </div>
 
-        <p className="text-sm text-gray-500 mt-2 leading-6">
-          Generate AI-powered interview questions tailored to your role and experience.
-        </p>
+        <div className="min-w-0">
+          <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
+            Start a new interview session
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Generate tailored questions and answers based on your target role, experience, and focus areas.
+          </p>
+        </div>
       </div>
 
-      {/* Form */}
+      {/* Main Dynamic Workspace Form */}
       <form onSubmit={handleCreateSession} className="space-y-5">
-
-        {/* Row inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <Input
             value={formData.role}
-            onChange={({ target }) =>
-              handleChange("role", target.value)
-            }
-            label="Target Role"
+            onChange={({ target }) => handleChange("role", target.value)}
+            label="Target role"
             placeholder="Frontend Developer"
             type="text"
           />
 
           <Input
             value={formData.experience}
-            onChange={({ target }) =>
-              handleChange("experience", target.value)
-            }
-            label="Years of Experience"
+            onChange={({ target }) => handleChange("experience", target.value)}
+            label="Years of experience"
             placeholder="2"
             type="number"
+            min="0"
           />
-
         </div>
 
-        {/* Topics */}
         <Input
           value={formData.topicsToFocus}
-          onChange={({ target }) =>
-            handleChange("topicsToFocus", target.value)
-          }
-          label="Topics to Focus On"
+          onChange={({ target }) => handleChange("topicsToFocus", target.value)}
+          label="Topics to focus on"
           placeholder="React, Node.js, MongoDB"
           type="text"
         />
 
-        {/* Description */}
         <div>
-          <label className="text-sm font-medium text-gray-700">
-            Description
-          </label>
-
+          <label className="premium-label">Description</label>
           <textarea
-            rows={3}
+            rows={4}
             value={formData.description}
-            onChange={({ target }) =>
-              handleChange("description", target.value)
-            }
-            placeholder="Add your goals or interview preferences..."
-            className="
-              w-full mt-2 px-4 py-3
-              border border-gray-200
-              rounded-xl
-              outline-none
-              resize-none
-              focus:border-orange-400
-              focus:ring-2 focus:ring-orange-100
-              transition-all
-            "
+            onChange={({ target }) => handleChange("description", target.value)}
+            placeholder="Add goals, target companies, or preferences..."
+            className="min-h-[112px] w-full rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-[0_12px_30px_-22px_rgba(15,23,42,0.25)] outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
           />
         </div>
 
-        {/* Error */}
+        {/* Error Notification Block */}
         {error && (
-          <p className="text-sm text-red-500">
+          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </p>
         )}
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3">
-
-          {/* Cancel */}
+        {/* Action Button Strip */}
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="
-              w-full sm:w-auto
-              px-6 py-3
-              rounded-xl
-              border border-gray-200
-              text-gray-700
-              hover:bg-gray-50
-              transition
-            "
+            className="premium-button-secondary w-full sm:w-auto"
           >
             Cancel
           </button>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={isLoading}
-            className="
-              w-full sm:w-auto
-              min-w-[180px]
-              h-12
-              flex items-center justify-center
-              rounded-xl
-              bg-gradient-to-r from-[#FF9324] to-[#f0a456]
-              text-white font-semibold
-              hover:scale-[1.02]
-              transition
-              disabled:opacity-60
-              disabled:cursor-not-allowed
-            "
+            className="premium-button w-full sm:w-auto sm:min-w-[180px]"
           >
-            {isLoading ? <SpinnerLoader size={22} /> : "Create Session"}
+            {isLoading ? (
+              <SpinnerLoader size={22} />
+            ) : (
+              "Create session"
+            )}
           </button>
-
         </div>
       </form>
     </div>

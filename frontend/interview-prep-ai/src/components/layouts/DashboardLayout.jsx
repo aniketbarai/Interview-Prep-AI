@@ -1,14 +1,11 @@
-import React, { useContext } from "react";
-import { UserContext } from "../../context/userContext";
+import React from "react";
 import Navbar from "./Navbar";
 
 const DashboardLayout = ({ children }) => {
-  const { user } = useContext(UserContext);
   return (
-    <div>
+    <div className="min-h-screen bg-transparent">
       <Navbar />
-
-      {user && <div className="">{children}</div>}
+      <main className="page-shell pb-16 pt-6 sm:pt-8">{children}</main>
     </div>
   );
 };
