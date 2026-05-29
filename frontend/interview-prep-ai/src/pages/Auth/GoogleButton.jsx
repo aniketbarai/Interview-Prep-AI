@@ -7,47 +7,11 @@ import { auth, googleProvider } from "../../firebase";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { UserContext } from "../../context/userContext";
+import { signInWithGoogle } from "../../services/authServices";
 
 const GoogleButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { updateUser } = useContext(UserContext);
-
- const handleGoogleLogin = async () => {
-  try {
-    setIsLoading(true);
-
-    // 1. Google popup
-    const result = await signInWithPopup(auth, googleProvider);
-
-    // 2. Get ID token (THIS is what backend needs)
-    const idToken = await result.user.getIdToken();
-
-    // 3. Send token to backend
-    const response = await axiosInstance.post(
-      API_PATHS.AUTH.GOOGLE_LOGIN,
-      {
-        credential: idToken,
-      }
-    );
-
-    // 4. Save JWT
-    if (response.data?.token) {
-      localStorage.setItem("token", response.data.token);
-
-      updateUser(response.data);
-
-      toast.success("Login successful");
-
-      window.location.href = "/dashboard";
-    }
-
-  } catch (error) {
-    console.error(error);
-    toast.error("Google login failed");
-  } finally {
-    setIsLoading(false);
-  }
-};
 
   return (
     <motion.button
@@ -56,7 +20,7 @@ const GoogleButton = () => {
       transition={{ duration: 0.2 }}
       type="button"
       disabled={isLoading}
-      onClick={handleGoogleLogin}
+      onClick={signInWithGoogle}
       className="
         w-full h-12 mt-4 px-4
         rounded-xl border border-gray-200
