@@ -1,36 +1,29 @@
-# TODO - Production auth flow fixes
+# TODO: UI responsive fixes
 
-## Step 1
-Inspect and confirm backend runtime errors source for `/api/auth/google` and `/api/auth/login`.
-- [x] Read backend: server.js, authController.js, firebaseAdmin.js, authRoutes.js, User model, authMiddleware.
-- [x] Read frontend: authServices.js, axiosInstance.js, apiPaths.js, firebase.js.
+## Information gathered
+- Project uses Tailwind via `@import "tailwindcss"` and a custom CSS layer in `frontend/interview-prep-ai/src/index.css`.
+- Navbar + layout already include mobile-first patterns (`md:flex`, `mobileMenuOpen`, responsive paddings).
+- Pages like `LandingPage`, `Dashboard`, and `CreateSessionForm` look largely responsive using Tailwind breakpoints.
+- `Login.jsx` is a fixed-width modal content wrapper (`w-[min(92vw,460px)]`), likely OK but can be improved for very small screens.
+- A `search_files` tool failed due to missing `ripgrep` binary, so targeted file inspection was done via `read_file`.
 
-## Step 2
-Harden and instrument backend
-- [x] Add global Express error handler + correlation id middleware.
-- [ ] Add `/api/auth/health` route.
-- [ ] Improve firebaseAdmin.js env logging + clearer init errors.
-- [ ] Improve authController.js logging and production-safe responses.
+## Plan (file-level)
+1. **Add robust, app-wide responsive safety CSS** in `frontend/interview-prep-ai/src/index.css`:
+   - prevent layout shifts from fixed elements on small screens
+   - add `max-width` handling for viewport
+   - ensure input/button/tap sizes
+   - fix potential overscroll / scrolling issues
+2. **Improve Login layout for smaller devices** (`frontend/interview-prep-ai/src/pages/Auth/Login.jsx`):
+   - ensure vertical fit (max-height + scroll)
+   - improve spacing on very small screens
+3. **Validate & adjust any non-responsive fixed measurements** in the inspected components (DashboardLayout/Navbar already OK; do only if issues found).
+
+## Progress
+- Done: Added responsive safety defaults to `index.css`.
+- Done: Improved `Login.jsx` to scroll within viewport on short screens.
 
 
-## Step 3
-Validate frontend-backend integration
-- [x] Ensure frontend posts correct payload to backend routes.
-- [ ] Add request URL/body-size logs in authServices.js (token length only).
-- [ ] Add backend CORS allow Authorization header.
-
-
-## Step 4
-Deployment hardening for Render
-- [ ] Validate required env var names used by backend at runtime.
-- [ ] Ensure server uses correct PORT and does not crash.
-
-## Step 5
-Run local tests
-- [ ] Start backend locally and verify `/api/auth/health`, `/api/auth/google`, `/api/auth/login`.
-
-## Step 6
-GitHub workflow
-- [ ] Commit changes with clean message.
-- [ ] Push to GitHub automatically.
+## Followup steps
+- Run frontend lint/build (or `npm run dev`) to ensure no Tailwind class typos.
+- Manually verify breakpoints: 320px, 375px, 768px, 1024px.
 
