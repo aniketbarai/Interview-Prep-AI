@@ -1,17 +1,34 @@
 import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
-import { signInWithPopup } from "firebase/auth";
 import { toast } from "react-hot-toast";
-import { GoogleAuthProvider } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase";
-import axiosInstance from "../../utils/axiosInstance";
-import { API_PATHS } from "../../utils/apiPaths";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/userContext";
 import { signInWithGoogle } from "../../services/authServices";
 
 const GoogleButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { updateUser } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const handleGoogleLogin = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
+    try {
+      const userData = await signInWithGoogle();
+      if (userData?.token) {
+        updateUser(userData);
+        toast.success("Logged in with Google");
+        navigate("/dashboard");
+      } else {
+        toast.error("Google login succeeded but no token was returned.");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Google login failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <motion.button
@@ -20,7 +37,7 @@ const GoogleButton = () => {
       transition={{ duration: 0.2 }}
       type="button"
       disabled={isLoading}
-      onClick={signInWithGoogle}
+      onClick={handleGoogleLogin}
       className="
         w-full h-12 mt-4 px-4
         rounded-xl border border-gray-200
@@ -32,7 +49,6 @@ const GoogleButton = () => {
         disabled:opacity-60 disabled:cursor-not-allowed
       "
     >
-      {/* Loading state */}
       {isLoading ? (
         <>
           <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
@@ -40,7 +56,6 @@ const GoogleButton = () => {
         </>
       ) : (
         <>
-          {/* Google Icon */}
           <GoogleIcon />
           <span>Continue with Google</span>
         </>

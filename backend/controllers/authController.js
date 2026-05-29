@@ -8,6 +8,10 @@ const admin = require("../firebaseAdmin");
 // JWT GENERATOR
 // ==============================
 const generateToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured.");
+  }
+
   return jwt.sign(
     { id: userId },
     process.env.JWT_SECRET,
@@ -47,6 +51,7 @@ const registerUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    console.error("Register user failed:", error);
     res.status(500).json({
       message: "Server Error, Try later.",
       error: error.message,
@@ -61,9 +66,9 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
 
-    if (!user || !user.password) {
+    if (!user || user.authProvider !== "local" || !user.password) {
       return res.status(400).json({
         message: "Invalid email or password",
       });
@@ -85,6 +90,7 @@ const loginUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    console.error("Login user failed:", error);
     res.status(500).json({
       message: "Server Error, Try later.",
       error: error.message,
@@ -105,6 +111,7 @@ const getUserProfile = async (req, res) => {
 
     res.json(user);
   } catch (error) {
+    console.error("Get user profile failed:", error);
     res.status(500).json({
       message: "Server Error, Try later.",
       error: error.message,
@@ -123,7 +130,7 @@ const googleAuth = async (req, res) => {
       return res.status(400).json({ message: "Token missing" });
     }
 
-    // VERIFY FIREBASE TOKEN
+    console.log("Verifying Firebase ID token for google auth");
     const decoded = await admin.auth().verifyIdToken(token);
 
     const { email, name, picture, uid } = decoded;
@@ -138,6 +145,10 @@ const googleAuth = async (req, res) => {
         googleId: uid,
         authProvider: "google",
       });
+    } else if (user.authProvider === "local" && !user.googleId) {
+      user.googleId = uid;
+      user.authProvider = "google";
+      await user.save();
     }
 
     const jwtToken = generateToken(user._id);
@@ -151,9 +162,10 @@ const googleAuth = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("ERROR:", error);
+    console.error("Google auth failed:", error);
     return res.status(500).json({
-      message: error.message,
+      message: "Google authentication failed.",
+      error: error.message,
     });
   }
 };

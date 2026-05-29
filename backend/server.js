@@ -13,16 +13,47 @@ const { protect } = require("./middlewares/authMiddleware");
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
 
 const app = express();
-// Middleware t handle cors
-app.use(
-    cors({
-        origin:"https://interview-prep-ai-rho.vercel.app",
-        methods: ["GET","POST","PUT","DELETE"],
-        allowedHeaders: ["Content-Type","Authorization"]
-    })
-)
 
-connectDB()
+const requiredEnv = [
+  "MONGO_URI",
+  "JWT_SECRET",
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_CLIENT_EMAIL",
+  "FIREBASE_PRIVATE_KEY",
+];
+
+const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+if (missingEnv.length) {
+  console.error("Missing required environment variables:", missingEnv.join(", "));
+  process.exit(1);
+}
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "https://interview-prep-ai-rho.vercel.app",
+  "http://localhost:5173",
+].filter(Boolean);
+
+// Middleware to handle CORS
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS origin denied: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+connectDB();
 
 // Middleware
 app.use(express.json())

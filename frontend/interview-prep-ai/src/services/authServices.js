@@ -1,22 +1,26 @@
-import axios from "axios";
+﻿import axiosInstance from "../utils/axiosInstance";
+import { API_PATHS } from "../utils/apiPaths";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-
     const user = result.user;
-
-    // 🔥 IMPORTANT: send to backend
     const token = await user.getIdToken();
 
-    await axios.post("https://interview-prep-ai-1-8pyn.onrender.com/api/auth/google", {
+    const response = await axiosInstance.post(API_PATHS.AUTH.GOOGLE, {
       token,
     });
 
-    console.log("User sent to backend");
+    const userData = response.data;
+    if (userData?.token) {
+      localStorage.setItem("token", userData.token);
+    }
+
+    return userData;
   } catch (error) {
-    console.error("Google login error:", error);
+    console.error("Google login error:", error?.response?.data || error.message || error);
+    throw error;
   }
 };
