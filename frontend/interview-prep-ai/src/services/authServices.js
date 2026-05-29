@@ -11,7 +11,7 @@ export const signInWithGoogle = async () => {
     // 🔥 IMPORTANT: send to backend
     const token = await user.getIdToken();
 
-    await axios.post("http://localhost:5000/api/auth/google", {
+    await axios.post("https://interview-prep-ai-rho.vercel.app//api/auth/google", {
       token,
     });
 
