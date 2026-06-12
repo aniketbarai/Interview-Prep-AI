@@ -4,15 +4,30 @@ const {
   questionAnswerPrompt,conceptExplainPrompt
 } = require("../utils/prompt");
 
-const client = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
+let client = null;
 
-  defaultHeaders: {
-    "HTTP-Referer": "http://localhost:5173",
-    "X-Title": "AI Interview Prep"
+const getClient = () => {
+  if (client) return client;
+
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      "OPENROUTER_API_KEY is not configured. Existing interview AI endpoints require it."
+    );
   }
-});
+
+  client = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+
+    defaultHeaders: {
+      "HTTP-Referer": "http://localhost:5173",
+      "X-Title": "AI Interview Prep"
+    }
+  });
+
+  return client;
+};
+
 
 const generateInterviewQuestions = async (req, res) => {
 
@@ -46,7 +61,7 @@ const generateInterviewQuestions = async (req, res) => {
     );
 
     // AI Request
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       model: "openrouter/free",
 
       messages: [
@@ -129,7 +144,7 @@ try {
     const prompt = conceptExplainPrompt(question);
 
     // AI Request
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       model: "openrouter/free",
 
       messages: [

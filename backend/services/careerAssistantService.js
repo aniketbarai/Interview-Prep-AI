@@ -12,16 +12,30 @@ const {
 
 // Resume parsing deps are loaded lazily in resume reviewer
 
-const client = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "http://localhost:5173",
-    "X-Title": "AI Interview Prep",
-  },
-});
-
+let client = null;
 const OPENROUTER_MODEL = "openrouter/free";
+
+const getClient = () => {
+  if (client) return client;
+
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      "OPENROUTER_API_KEY is not configured. Set it to enable Career Assistant Hub AI features."
+    );
+  }
+
+  client = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+    defaultHeaders: {
+      "HTTP-Referer": "http://localhost:5173",
+      "X-Title": "AI Interview Prep",
+    },
+  });
+
+  return client;
+};
+
 
 const safeJsonParse = (rawText) => {
   const cleanedText = (rawText || "")
