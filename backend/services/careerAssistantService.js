@@ -86,7 +86,8 @@ const parseResumeToText = async (fileBuffer, filename) => {
 
     const pdfInstance = new pdfParse();
     const data = await pdfInstance.parseBuffer(fileBuffer);
-    return data?.text || "";
+    // pdf-parse returns: { text, ... } or sometimes different shape depending on version
+    return typeof data?.text === "string" ? data.text : data?.text?.text || "";
   }
 
   if (ext === ".docx" || ext === ".doc") {
