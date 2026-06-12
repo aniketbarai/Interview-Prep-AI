@@ -84,7 +84,8 @@ const parseResumeToText = async (fileBuffer, filename) => {
       );
     }
 
-    const data = await pdfParse(fileBuffer);
+    const pdfInstance = new pdfParse();
+    const data = await pdfInstance.parseBuffer(fileBuffer);
     return data?.text || "";
   }
 
