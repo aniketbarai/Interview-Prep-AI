@@ -174,8 +174,14 @@ const InterviewCoach = ({ context, onDone }) => {
         subject,
         question,
       });
-      setResult(res.data?.data || res.data);
+
+      // backend responds: { success: true, report, data }
+      const payload = res?.data;
+      const normalized = payload?.data || payload;
+
+      setResult(normalized);
       onDone?.();
+
     } catch (err) {
       setErrorMsg(err?.response?.data?.message || "Failed to explain.");
     } finally {
