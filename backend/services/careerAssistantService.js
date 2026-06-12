@@ -84,6 +84,7 @@ const parseResumeToText = async (fileBuffer, filename) => {
   throw new Error("Unsupported resume file type. Use PDF or DOCX.");
 };
 
+
 const generateInterviewCoach = async ({ role, experience, subject, question }) => {
   const systemContent = "You are an elite Interview Coach. Return ONLY valid JSON.";
   const prompt = interviewCoachPrompt({ role, experience, subject }) + `\n\nUSER QUESTION:\n${question}`;
