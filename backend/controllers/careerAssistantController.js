@@ -55,8 +55,15 @@ const resumeReviewer = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "resume file is required (PDF or DOCX)",
+        details: {
+          hasFile: !!req.file,
+          hasBuffer: !!req.file?.buffer,
+          fileMimetype: req.file?.mimetype,
+          fileOriginalname: req.file?.originalname,
+        },
       });
     }
+
 
     const resumeText = await parseResumeToText(req.file.buffer, req.file.originalname);
 
