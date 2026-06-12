@@ -91,12 +91,17 @@ const resumeReviewer = async (req, res) => {
 
     return res.status(200).json({ success: true, report, data });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to review resume",
-      error: error.message,
-    });
-  }
+  console.error("========== ERROR ==========");
+  console.error(error);
+  console.error(error.stack);
+
+  return res.status(500).json({
+    success: false,
+    message: "Failed to review resume",
+    error: error.message,
+    stack: error.stack,
+  });
+}
 };
 
 const projectReviewer = async (req, res) => {
