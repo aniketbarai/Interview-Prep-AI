@@ -70,7 +70,12 @@ const parseResumeToText = async (fileBuffer, filename) => {
 
   // Lazy-load to avoid crashing if dependency missing in dev
   if (ext === ".pdf") {
-    const pdfParse = require("pdf-parse");
+    const pdfParsePkg = require("pdf-parse");
+    // pdf-parse exports a function directly or under .default depending on bundler
+    const pdfParse = pdfParsePkg.default || pdfParsePkg;
+    if (typeof pdfParse !== "function") {
+      throw new Error("pdfParse is not a function");
+    }
     const data = await pdfParse(fileBuffer);
     return data?.text || "";
   }
