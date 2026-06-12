@@ -186,13 +186,20 @@ const hrStart = async (req, res) => {
 
     return res.status(200).json({ success: true, conversationId: conversation.conversationId, data });
   } catch (error) {
+    // Include more details for debugging in production (safe fields only)
     return res.status(500).json({
       success: false,
       message: "Failed to start HR interview",
-      error: error.message,
+      error: error?.message,
+      details: {
+        // helpful for env/config failures
+        hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+        openRouterModel: process.env.OPENROUTER_MODEL || "openrouter/free",
+      },
     });
   }
 };
+
 
 const hrAnswer = async (req, res) => {
   try {
