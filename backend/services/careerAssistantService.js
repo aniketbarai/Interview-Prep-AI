@@ -47,13 +47,17 @@ const safeJsonParse = (rawText) => {
 };
 
 const generateJsonCompletion = async ({ systemContent, userContent }) => {
-  const completion = await client.chat.completions.create({
+  // Ensure client exists (was previously referencing `client` which may still be null)
+  const activeClient = getClient();
+
+  const completion = await activeClient.chat.completions.create({
     model: OPENROUTER_MODEL,
     messages: [
       { role: "system", content: systemContent },
       { role: "user", content: userContent },
     ],
   });
+
 
   const rawText = completion?.choices?.[0]?.message?.content;
   if (!rawText) throw new Error("No response from AI");
