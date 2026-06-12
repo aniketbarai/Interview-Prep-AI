@@ -36,7 +36,6 @@ const getClient = () => {
   return client;
 };
 
-
 const safeJsonParse = (rawText) => {
   const cleanedText = (rawText || "")
     .replace(/^```json\s*/i, "")
@@ -47,7 +46,6 @@ const safeJsonParse = (rawText) => {
 };
 
 const generateJsonCompletion = async ({ systemContent, userContent }) => {
-  // Ensure client exists (was previously referencing `client` which may still be null)
   const activeClient = getClient();
 
   const completion = await activeClient.chat.completions.create({
@@ -58,7 +56,6 @@ const generateJsonCompletion = async ({ systemContent, userContent }) => {
     ],
   });
 
-
   const rawText = completion?.choices?.[0]?.message?.content;
   if (!rawText) throw new Error("No response from AI");
 
@@ -68,14 +65,22 @@ const generateJsonCompletion = async ({ systemContent, userContent }) => {
 const parseResumeToText = async (fileBuffer, filename) => {
   const ext = path.extname(filename || "").toLowerCase();
 
-  // Lazy-load to avoid crashing if dependency missing in dev
   if (ext === ".pdf") {
     const pdfParsePkg = require("pdf-parse");
-    // pdf-parse exports a function directly or under .default depending on bundler
-    const pdfParse = pdfParsePkg.default || pdfParsePkg;
+
+    // Handle common export shapes:
+    // - module.exports = function pdfParse() {}
+    // - module.exports = { default: function pdfParse() {} }
+    // - module.exports.parse = function pdfParse() {}
+    const pdfParse =
+      pdfParsePkg?.default || pdfParsePkg || pdfParsePkg?.parse;
+
     if (typeof pdfParse !== "function") {
-      throw new Error("pdfParse is not a function");
+      throw new Error(
+        "pdfParse is not a function (unexpected pdf-parse module export shape)"
+      );
     }
+
     const data = await pdfParse(fileBuffer);
     return data?.text || "";
   }
@@ -89,10 +94,11 @@ const parseResumeToText = async (fileBuffer, filename) => {
   throw new Error("Unsupported resume file type. Use PDF or DOCX.");
 };
 
-
 const generateInterviewCoach = async ({ role, experience, subject, question }) => {
   const systemContent = "You are an elite Interview Coach. Return ONLY valid JSON.";
-  const prompt = interviewCoachPrompt({ role, experience, subject }) + `\n\nUSER QUESTION:\n${question}`;
+  const prompt =
+    interviewCoachPrompt({ role, experience, subject }) +
+    `\n\nUSER QUESTION:\n${question}`;
 
   return generateJsonCompletion({ systemContent, userContent: prompt });
 };
@@ -106,9 +112,25 @@ const generateResumeReview = async ({ role, experience, subject, resumeText }) =
   return generateJsonCompletion({ systemContent, userContent: prompt });
 };
 
-const generateProjectReview = async ({ role, experience, subject, title, description, stack, githubUrl }) => {
+const generateProjectReview = async ({
+  role,
+  experience,
+  subject,
+  title,
+  description,
+  stack,
+  githubUrl,
+}) => {
   const systemContent = "You are an expert technical reviewer. Return ONLY valid JSON.";
-  const prompt = projectReviewerPrompt({ role, experience, subject, title, description, stack, githubUrl });
+  const prompt = projectReviewerPrompt({
+    role,
+    experience,
+    subject,
+    title,
+    description,
+    stack,
+    githubUrl,
+  });
 
   return generateJsonCompletion({ systemContent, userContent: prompt });
 };
@@ -124,15 +146,29 @@ const generateHrStart = async ({ role, experience, subject }) => {
   const systemContent = "You are an expert HR interviewer. Return ONLY valid JSON.";
   const conversationId = `hr_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   const prompt =
-    hrStartPrompt({ role, experience, subject }) + `\n\nCONVERSATION_ID: ${conversationId}`;
+    hrStartPrompt({ role, experience, subject }) +
+    `\n\nCONVERSATION_ID: ${conversationId}`;
 
   const data = await generateJsonCompletion({ systemContent, userContent: prompt });
   return { ...data, conversationId };
 };
 
-const generateHrAnswerEvaluation = async ({ role, experience, subject, previousQuestionIndex, userAnswer }) => {
-  const systemContent = "You are an expert HR interviewer and evaluator. Return ONLY valid JSON.";
-  const prompt = hrAnswerPrompt({ role, experience, subject, previousQuestionIndex, userAnswer });
+const generateHrAnswerEvaluation = async ({
+  role,
+  experience,
+  subject,
+  previousQuestionIndex,
+  userAnswer,
+}) => {
+  const systemContent =
+    "You are an expert HR interviewer and evaluator. Return ONLY valid JSON.";
+  const prompt = hrAnswerPrompt({
+    role,
+    experience,
+    subject,
+    previousQuestionIndex,
+    userAnswer,
+  });
 
   return generateJsonCompletion({ systemContent, userContent: prompt });
 };
