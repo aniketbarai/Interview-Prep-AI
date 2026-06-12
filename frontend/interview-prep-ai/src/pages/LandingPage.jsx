@@ -293,6 +293,7 @@ const LandingPage = () => {
 
           <footer className="pb-8 pt-2 text-center text-sm text-slate-500">
             Made with precision for interview prep teams and solo learners.
+            Crafted by <a href="https://www.linkedin.com/in/aniketbarai">Aniket Barai</a>
           </footer>
         </div>
       </div>
