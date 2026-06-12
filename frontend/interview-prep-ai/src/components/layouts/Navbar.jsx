@@ -83,10 +83,14 @@ const Navbar = () => {
 
           {/* 💻 Desktop Navigation Menu */}
           <nav className="hidden items-center gap-2 md:flex">
-            <NavLink to="/dashboard" className={navLinkClass} end>
+            <NavLink to="/" className={navLinkClass} end>
+              Home
+            </NavLink>
+            <NavLink to="/dashboard" className={navLinkClass}>
               Dashboard
             </NavLink>
           </nav>
+
 
           {/* 💻 Desktop Action System Profile Card */}
           <div className="hidden items-center gap-4 md:flex">
@@ -116,11 +120,16 @@ const Navbar = () => {
               className="border-zinc-80 px-4 py-5 backdrop-blur-xl md:hidden shadow-xl"
             >
               <div className="flex flex-col gap-4">
-                <NavLink to="/dashboard" className={navLinkClass} end>
+                <NavLink to="/" className={navLinkClass} end>
+                  Home
+                </NavLink>
+
+                <NavLink to="/dashboard" className={navLinkClass}>
                   Dashboard
                 </NavLink>
-                
+
                 {/* Embedded Profile Area customized for premium presentation inside the dark mobile theme */}
+
                 <div className="rounded-2xl border border-zinc-800 p-3 text-white">
                   <ProfileInfoCard compact />
                 </div>
