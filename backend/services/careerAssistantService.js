@@ -73,7 +73,10 @@ const parseResumeToText = async (fileBuffer, filename) => {
     // - module.exports = { default: function pdfParse() {} }
     // - module.exports.parse = function pdfParse() {}
     const pdfParse =
-      pdfParsePkg?.default || pdfParsePkg || pdfParsePkg?.parse;
+      pdfParsePkg?.PDFParse ||
+      pdfParsePkg?.PDFParser ||
+      pdfParsePkg?.parse ||
+      pdfParsePkg;
 
     if (typeof pdfParse !== "function") {
       throw new Error(
