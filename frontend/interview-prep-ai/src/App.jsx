@@ -6,7 +6,9 @@ import { Toaster } from "react-hot-toast";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Home/Dashboard";
 import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
+import CareerAssistantHub from "./pages/CareerAssistant/CareerAssistantHub";
 import UserProvider, { UserContext } from "./context/userContext";
+
 import SpinnerLoader from "./components/Loader/SpinnerLoader";
 
 const pageVariants = {
@@ -65,7 +67,16 @@ const AnimatedRoutes = () => {
             </motion.div>
           }
         />
+        <Route
+          path="/career-assistant"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <CareerAssistantHub />
+            </motion.div>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </AnimatePresence>
   );

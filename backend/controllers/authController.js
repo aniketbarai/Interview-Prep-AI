@@ -3,7 +3,8 @@ const fs = require("fs/promises");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const admin = require("../firebaseAdmin");
+const { requireFirebaseAdmin } = require("../firebaseAdmin");
+
 
 const UPLOADS_DIR = path.resolve(__dirname, "..", "uploads");
 
@@ -153,7 +154,9 @@ const googleAuth = async (req, res) => {
       return res.status(400).json({ message: "Token is required." });
     }
 
+    const admin = requireFirebaseAdmin();
     const decoded = await admin.auth().verifyIdToken(token);
+
     const email = sanitizeEmail(decoded.email);
 
     if (!email) {

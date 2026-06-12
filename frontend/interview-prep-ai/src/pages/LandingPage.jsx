@@ -131,7 +131,23 @@ const LandingPage = () => {
                       Get started
                       <LuArrowRight />
                     </button>
-                    
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!user) {
+                          setCurrentPage("signup");
+                          setOpenAuthModal(true);
+                          return;
+                        }
+                        navigate("/career-assistant");
+                      }}
+                      className="premium-button-secondary"
+                    >
+                      AI Career Assistant Hub
+                      <LuArrowRight />
+                    </button>
+
                     <a href="#features" className="premium-button-secondary">
                       Explore features
                     </a>
