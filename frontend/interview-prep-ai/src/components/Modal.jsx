@@ -35,7 +35,7 @@ const Modal = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-slate-950/40 p-4 backdrop-blur-md overflow-x-hidden"
       onClick={onClose}
     >
       <motion.div 
@@ -44,15 +44,17 @@ const Modal = ({
         exit={{ opacity: 0, scale: 0.98, y: 6 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className={`
-          relative 
-          w-full 
-          ${maxWidth} 
-          max-h-[85vh] 
+          relative
+          w-full
+          ${maxWidth}
+          max-h-[85svh]
+          sm:max-h-[85dvh]
           bg-white
           border border-slate-200/60
-          shadow-[0_32px_90px_-20px_rgba(15,23,42,0.35)] 
-          rounded-[24px] 
-          overflow-hidden 
+          shadow-[0_32px_90px_-20px_rgba(15,23,42,0.35)]
+          rounded-[24px]
+          overflow-hidden
+          overflow-x-hidden
           flex flex-col
         `}
         onClick={(e) => e.stopPropagation()} 
@@ -86,7 +88,7 @@ const Modal = ({
         </button>
 
         {/* This container can scroll safely if the form contents are long */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 sm:p-8 touch-pan-y overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
           {children}
         </div>
       </motion.div>

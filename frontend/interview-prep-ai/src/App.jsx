@@ -7,7 +7,13 @@ import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Home/Dashboard";
 import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
 import CareerAssistantHub from "./pages/CareerAssistant/CareerAssistantHub";
+import InterviewCoachPage from "./pages/CareerAssistant/pages/InterviewCoachPage";
+import ResumeReviewerPage from "./pages/CareerAssistant/pages/ResumeReviewerPage";
+import ProjectReviewerPage from "./pages/CareerAssistant/pages/ProjectReviewerPage";
+import CareerAdvisorPage from "./pages/CareerAssistant/pages/CareerAdvisorPage";
+import HRInterviewerPage from "./pages/CareerAssistant/pages/HRInterviewerPage";
 import UserProvider, { UserContext } from "./context/userContext";
+
 
 import SpinnerLoader from "./components/Loader/SpinnerLoader";
 
@@ -75,7 +81,48 @@ const AnimatedRoutes = () => {
             </motion.div>
           }
         />
+        <Route
+          path="/career-assistant/interview"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <InterviewCoachPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/career-assistant/resume"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <ResumeReviewerPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/career-assistant/project"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <ProjectReviewerPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/career-assistant/roadmap"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <CareerAdvisorPage />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/career-assistant/hr"
+          element={
+            <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <HRInterviewerPage />
+            </motion.div>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
+
 
       </Routes>
     </AnimatePresence>
