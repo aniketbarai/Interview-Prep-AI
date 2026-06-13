@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuCheck, LuAlertCircle, LuSparkles } from "react-icons/lu";
+import { LuCheck, LuInfo, LuSparkles } from "react-icons/lu";
+
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LuCheck, LuInfo } from "react-icons/lu";
 import { toast } from "react-hot-toast";
@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { CAREER_ASSISTANT_API } from "../../../services/careerAssistantServices";
 import CareerAssistantPageLayout from "../../../components/layouts/CareerAssistantPageLayout";
+import ProgressLoader from "../../../components/common/ProgressLoader";
+import useSimulatedProgress from "../../../hooks/useSimulatedProgress";
+
 
 const ContextInputs = ({ role, setRole, experience, setExperience, subject, setSubject, subjectLabel = "Target Skill" }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -122,8 +125,35 @@ const ResumeReviewerPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState(null);
 
+  const progressMessages = useMemo(
+    () => [
+      { at: 10, text: "Parsing resume..." },
+      { at: 25, text: "Extracting content..." },
+      { at: 45, text: "Analyzing skills..." },
+      { at: 70, text: "Checking ATS compatibility..." },
+      { at: 90, text: "Preparing recommendations..." },
+      { at: 100, text: "Review complete" },
+    ],
+    []
+  );
+
+  const {
+    isRunning: progressIsRunning,
+    progress,
+    status,
+    estimatedTime,
+    success: progressSuccess,
+    error: progressError,
+    start: startProgress,
+    onComplete: completeProgress,
+    stopWithError: stopProgressWithError,
+  } = useSimulatedProgress({ messages: progressMessages });
+
+
+
   const handleUpload = async (e) => {
     e.preventDefault();
+
     if (!file) {
       toast.error("Please select a file.");
       return;
@@ -137,19 +167,27 @@ const ResumeReviewerPage = () => {
 
 
 
+    startProgress();
     setLoading(true);
 
     setErrorMsg("");
     setResult(null);
 
+
     try {
       const res = await CAREER_ASSISTANT_API.resumeReview(formData);
       setResult(res.data?.data || res.data);
+
+      // If the API responds, complete the loader then reveal results.
+      await completeProgress();
+      await new Promise((r) => setTimeout(r, 350));
     } catch (err) {
+      stopProgressWithError(err?.response?.data?.message || "Couldn't process this file. Try again.");
       setErrorMsg(err?.response?.data?.message || "Couldn't process this file. Try again.");
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
@@ -201,7 +239,19 @@ const ResumeReviewerPage = () => {
 
           <div className="lg:col-span-7 min-w-0">
             <AnimatePresence mode="wait">
-              {loading && <FunLoader text="Reading your resume..." />}
+              {loading && (
+                <ProgressLoader
+                  fullscreen
+                  isLoading={true}
+                  title="🤖 AI Assistant"
+                  progress={progress}
+                  status={status}
+                  estimatedTime={estimatedTime}
+                  type="resume"
+                  success={progressSuccess}
+                />
+              )}
+
 
               {!loading && result && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
