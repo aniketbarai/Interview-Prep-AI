@@ -151,7 +151,10 @@ export default function useSimulatedProgress({
     });
 
 
+    // Use the latest progress value from closure; caller's UI should keep passing
+    // the same hook instance while API request is pending.
     const startFrom = clamp(progress, 0, 95);
+
     const duration = 420 + Math.random() * 280; // 400-700ms
     const startedAt = Date.now();
 
