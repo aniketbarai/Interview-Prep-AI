@@ -127,14 +127,15 @@ const ProgressLoader = ({
                 <div className={`shrink-0 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 text-right ${theme.ring}`}>
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Progress</div>
                   <motion.div
-                    key={displayProgress}
+                    key={Math.round(displayProgress)}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                     className="text-2xl font-extrabold text-slate-900"
                   >
-                    {success ? 100 : displayProgress}%
+                    {success ? 100 : Math.round(displayProgress)}%
                   </motion.div>
+
                 </div>
               </div>
 

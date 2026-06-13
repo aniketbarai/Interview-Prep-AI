@@ -77,24 +77,23 @@ export default function useSimulatedProgress({
         // Never exceed 95 while waiting.
         if (p >= 95) return 95;
 
-
+        // Make movement feel continuous: slightly larger increments near 60,
+        // and keep a small drift through 95% so it never feels stuck.
         const inc = (() => {
           if (p < 60) {
-            // Fast
-            return 1.2 + Math.random() * 1.8;
+            // Fast 0-60
+            return 1.1 + Math.random() * 2.2;
           }
           if (p < 85) {
-            // Medium
-            return 0.7 + Math.random() * 1.2;
+            // Medium 60-85
+            return 0.65 + Math.random() * 1.4;
           }
-          // Slow 85->95
-          return 0.25 + Math.random() * 0.6;
+          // Slow 85-95 (keep it moving)
+          return 0.35 + Math.random() * 0.85;
         })();
 
         return clamp(p + inc, 0, 95);
       });
-
-
     };
 
     const intervalMs = Math.round(minIntervalMs + Math.random() * (maxIntervalMs - minIntervalMs));

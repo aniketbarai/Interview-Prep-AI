@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { CAREER_ASSISTANT_API } from "../../../services/careerAssistantServices";
 import CareerAssistantPageLayout from "../../../components/layouts/CareerAssistantPageLayout";
+import ProgressLoader from "../../../components/common/ProgressLoader";
+import useSimulatedProgress from "../../../hooks/useSimulatedProgress";
+
 
 const ContextInputs = ({ role, setRole, experience, setExperience, subject, setSubject, subjectLabel = "Topic / Tech" }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -91,6 +94,7 @@ const FunLoader = ({ text }) => (
   </motion.div>
 );
 
+
 const InterviewCoachPage = () => {
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState("");
@@ -100,6 +104,27 @@ const InterviewCoachPage = () => {
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const progressMessages = [
+    { at: 10, text: "Understanding target role..." },
+    { at: 25, text: "Selecting interview topics..." },
+    { at: 50, text: "Generating questions..." },
+    { at: 75, text: "Creating interview flow..." },
+    { at: 90, text: "Finalizing session..." },
+    { at: 100, text: "Session ready" },
+  ];
+
+  const {
+    progress,
+    status,
+    estimatedTime,
+    success: progressSuccess,
+    error: progressError,
+    start: startProgress,
+    onComplete: completeProgress,
+    stopWithError: stopProgressWithError,
+  } = useSimulatedProgress({ messages: progressMessages });
+
+
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (!question.trim()) {
@@ -107,19 +132,26 @@ const InterviewCoachPage = () => {
       return;
     }
 
+    startProgress();
     setLoading(true);
     setErrorMsg("");
     setResult(null);
+
 
     try {
       const res = await CAREER_ASSISTANT_API.interviewCoach({ role, experience, subject, question });
       const payload = res?.data;
       setResult(payload?.data || payload);
+
+      await completeProgress();
+      await new Promise((r) => setTimeout(r, 350));
     } catch (err) {
+      stopProgressWithError(err?.response?.data?.message || "Something went wrong. Please try again.");
       setErrorMsg(err?.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
@@ -130,7 +162,8 @@ const InterviewCoachPage = () => {
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           <div className="lg:col-span-5 space-y-4">
-            <form onSubmit={handleGenerate} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+            <form onSubmit={handleGenerate} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4" onKeyDown={(e) => e.stopPropagation()}>
+
               <ContextInputs
                 role={role}
                 setRole={setRole}
@@ -162,7 +195,19 @@ const InterviewCoachPage = () => {
 
           <div className="lg:col-span-7 min-w-0">
             <AnimatePresence mode="wait">
-              {loading && <FunLoader text="Working on it..." />}
+              {loading && (
+                <ProgressLoader
+                  fullscreen
+                  isLoading={true}
+                  title="🤖 AI Assistant"
+                  progress={progress}
+                  status={status}
+                  estimatedTime={estimatedTime}
+                  type="interview"
+                  success={progressSuccess}
+                />
+              )}
+
 
               {!loading && result?.questionExplanations?.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
