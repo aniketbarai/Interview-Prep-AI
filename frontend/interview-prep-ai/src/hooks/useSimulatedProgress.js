@@ -158,7 +158,19 @@ export default function useSimulatedProgress({
     const duration = 420 + Math.random() * 280; // 400-700ms
     const startedAt = Date.now();
 
+    let resolved = false;
+
     await new Promise((resolve) => {
+      // Ensure we always finish even if timers get throttled / tab is backgrounded.
+      const hardTimeoutId = setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        setProgress(100);
+        resolve();
+      }, duration + 250);
+
+      setTimer("completeHardTimeout", hardTimeoutId);
+
       const id = setInterval(() => {
         const elapsed = Date.now() - startedAt;
         const t = clamp(elapsed / duration, 0, 1);
@@ -168,7 +180,12 @@ export default function useSimulatedProgress({
         setProgress(next);
 
         if (t >= 1) {
+          if (resolved) return;
+          resolved = true;
           clearInterval(id);
+          try {
+            clearTimeout(hardTimeoutId);
+          } catch (_) {}
           resolve();
         }
       }, 40);
