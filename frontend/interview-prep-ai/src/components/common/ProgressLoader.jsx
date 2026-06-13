@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuCheck, LuInfo, LuSparkles } from "react-icons/lu";
-
-
-
+import { LuCheck, LuSparkles } from "react-icons/lu";
 
 const DEFAULT_STATUS = "Analyzing your request...";
+
 
 /**
  * Presentational AI-style progress loader.
@@ -226,7 +224,7 @@ const ProgressLoader = ({
                     className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4"
                   >
                     <div className="flex items-start gap-3">
-                      <LuAlertCircle className="text-rose-600" size={18} />
+                      <LuInfo className="text-rose-600" size={18} />
                       <div className="min-w-0">
                         <div className="text-sm font-bold text-rose-800">Something went wrong</div>
                         <div className="text-sm text-rose-700 mt-1 break-words">{error}</div>

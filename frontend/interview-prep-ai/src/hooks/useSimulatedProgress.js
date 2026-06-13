@@ -102,7 +102,7 @@ export default function useSimulatedProgress({
 
     // Estimated time: just for UI realism.
     // Reset on start.
-    setEstimatedTime("~4s");
+    setEstimatedTime("~2m-5min");
 
     return () => {
       clearAllTimers();
@@ -143,7 +143,13 @@ export default function useSimulatedProgress({
     setSuccess(false);
 
     // Ensure we are at 95 (hold state). Then animate.
-    setProgress((p) => clamp(p, 0, 95));
+    setProgress((p) => {
+      const base = clamp(p, 0, 95);
+      // Nudge forward a tiny bit so the UI doesn't look frozen at exactly 95
+      // while we animate to 100.
+      return clamp(base + 0.15, 0, 95);
+    });
+
 
     const startFrom = clamp(progress, 0, 95);
     const duration = 420 + Math.random() * 280; // 400-700ms
