@@ -66,29 +66,12 @@ const parseResumeToText = async (fileBuffer, filename) => {
   const ext = path.extname(filename || "").toLowerCase();
 
   if (ext === ".pdf") {
-    const pdfParsePkg = require("pdf-parse");
+  const pdfParse = require("pdf-parse");
 
-    // Handle common export shapes:
-    // - module.exports = function pdfParse() {}
-    // - module.exports = { default: function pdfParse() {} }
-    // - module.exports.parse = function pdfParse() {}
-    const pdfParse =
-      pdfParsePkg?.PDFParse ||
-      pdfParsePkg?.PDFParser ||
-      pdfParsePkg?.parse ||
-      pdfParsePkg;
+  const data = await pdfParse(fileBuffer);
 
-    if (typeof pdfParse !== "function") {
-      throw new Error(
-        "pdfParse is not a function (unexpected pdf-parse module export shape)"
-      );
-    }
-
-    const pdfInstance = new pdfParse();
-    const data = await pdfInstance.parseBuffer(fileBuffer);
-    // pdf-parse returns: { text, ... } or sometimes different shape depending on version
-    return typeof data?.text === "string" ? data.text : data?.text?.text || "";
-  }
+  return data.text || "";
+}
 
   if (ext === ".docx" || ext === ".doc") {
     const mammoth = require("mammoth");
