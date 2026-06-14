@@ -1,6 +1,7 @@
 // backend code here 
 // npm i express bcryptjs cors dotenv jsonwebtoken mongoose 
 // multer @google/genai
+require("dns").setDefaultResultOrder("ipv4first");
 require("dotenv").config();
 const express = require("express")
 const cors = require("cors")
