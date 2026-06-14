@@ -76,12 +76,15 @@ const registerUser = async (req, res) => {
       authProvider: "local",
       emailVerified: false,
     });
-      // Fire and forget
-sendWelcomeEmail(user.email, user.name)
-  .catch(err => console.error("Welcome email failed:", err));
+      // Fire and forget (never block registration response)
+      sendWelcomeEmail(user.email, user.name).catch((err) => {
+        console.error("Welcome email failed:", err?.message || err);
+      });
 
-notifyAdmin(user.email, user.name)
-  .catch(err => console.error("Admin email failed:", err));
+      notifyAdmin(user.email, user.name).catch((err) => {
+        console.error("Admin email failed:", err?.message || err);
+      });
+
 
     return res.status(201).json(buildAuthResponse(user));
   } catch (error) {
