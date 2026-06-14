@@ -143,8 +143,8 @@ const InterviewCoachPage = () => {
       const payload = res?.data;
       setResult(payload?.data || payload);
 
-      await completeProgress();
-      await new Promise((r) => setTimeout(r, 350));
+      completeProgress();
+      setTimeout(() => {}, 0);
     } catch (err) {
       stopProgressWithError(err?.response?.data?.message || "Something went wrong. Please try again.");
       setErrorMsg(err?.response?.data?.message || "Something went wrong. Please try again.");

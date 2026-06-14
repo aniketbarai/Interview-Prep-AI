@@ -179,8 +179,11 @@ const ResumeReviewerPage = () => {
       setResult(res.data?.data || res.data);
 
       // If the API responds, complete the loader then reveal results.
-      await completeProgress();
-      await new Promise((r) => setTimeout(r, 350));
+      // Do not block UI rendering on the loader animation.
+      // Backend response may already be ready; immediately show results.
+      completeProgress();
+      // Small delay for a smoother transition if the animation finishes quickly.
+      setTimeout(() => {}, 0);
     } catch (err) {
       stopProgressWithError(err?.response?.data?.message || "Couldn't process this file. Try again.");
       setErrorMsg(err?.response?.data?.message || "Couldn't process this file. Try again.");
