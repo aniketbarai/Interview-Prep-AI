@@ -10,8 +10,13 @@ console.log("EMAIL CONFIG:", {
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
+  port: Number(process.env.SMTP_PORT),
   secure: false,
+
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -81,6 +86,7 @@ const notifyAdmin = async (email, name) => {
 };
 
 module.exports = {
+  transporter,
   sendWelcomeEmail,
   notifyAdmin,
 };

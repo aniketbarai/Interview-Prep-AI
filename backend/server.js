@@ -13,9 +13,7 @@ const questionRoutes = require("./routes/questionRoutes");
 const careerAssistantRoutes = require("./routes/careerAssistantRoutes");
 const { protect } = require("./middlewares/authMiddleware");
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
-const {
-  sendWelcomeEmail,
-} = require("./services/emailServices");
+const { transporter } = require("./services/emailServices");
 
 
 const app = express();
@@ -27,9 +25,11 @@ const requiredEnv = [
   "FIREBASE_CLIENT_EMAIL",
   "FIREBASE_PRIVATE_KEY",
   "OPENROUTER_API_KEY",
-  "EMAIL_USER",
-  "ADMIN_EMAIL",
-  "EMAIL_PASS",
+  "SMTP_HOST",
+"SMTP_PORT",
+"SMTP_USER",
+"SMTP_PASS",
+"ADMIN_EMAIL",
 ];
 
 
@@ -112,39 +112,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-app.get("/test-email", async (req, res) => {
-  try {
-    // Uses the same production transporter as emailServices.
-    const { sendWelcomeEmail } = require("./services/emailServices");
-
-    const email = process.env.EMAIL_USER;
-    const name = "Test";
-
-    // Send a deterministic message via welcome template.
-    // (Keeping route behavior; transport config is what matters.)
-    await sendWelcomeEmail(email, name);
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("EMAIL ERROR:", err);
-
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("SMTP VERIFY ERROR:", error);
+  } else {
+    console.log("SMTP READY");
   }
 });
-app.get("/email-debug", (req, res) => {
-  res.json({
-    emailUser: process.env.EMAIL_USER,
-    hasPass: !!process.env.EMAIL_PASS,
-  });
-});
-
-
-
-
 
 // start server
 const PORT = process.env.PORT || 5000;
