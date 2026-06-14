@@ -3,6 +3,11 @@ const fs = require("fs/promises");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const {
+  sendWelcomeEmail,
+  notifyAdmin,
+  sendLoginEmail
+} = require("../services/emailServices");
 const { requireFirebaseAdmin } = require("../firebaseAdmin");
 
 
@@ -27,7 +32,7 @@ const generateToken = (userId) => {
   }
 
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "5m",
   });
 };
 
@@ -72,6 +77,8 @@ const registerUser = async (req, res) => {
       authProvider: "local",
       emailVerified: false,
     });
+      sendWelcomeEmail(user.email, user.name);
+      notifyAdmin(user.email, user.name);
 
     return res.status(201).json(buildAuthResponse(user));
   } catch (error) {
@@ -107,7 +114,8 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-
+    // after successful login
+    sendLoginEmail(user.email, user.name);
     return res.status(200).json(buildAuthResponse(user));
   } catch (error) {
     console.error("Login user failed:", error);
