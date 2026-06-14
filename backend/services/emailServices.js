@@ -5,7 +5,6 @@ console.log("EMAIL CONFIG:", {
   port: process.env.SMTP_PORT,
   userExists: !!process.env.SMTP_USER,
   passExists: !!process.env.SMTP_PASS,
-  senderEmail: process.env.SENDER_EMAIL,
   adminEmail: process.env.ADMIN_EMAIL,
 });
 
