@@ -37,7 +37,7 @@ const baseTemplate = (content) => `
 const sendWelcomeEmail = async (email, name) => {
   try {
     const html = baseTemplate(`
-      <h2 style="color:#111;">Welcome, ${name} 👋</h2>
+      <h2 style="color:#111;">Welcome, ${name}</h2>
 
       <p style="color:#555;">
         Your account has been created successfully. You are now ready to start your
@@ -98,7 +98,7 @@ const notifyAdmin = async (email, name, type = "REGISTER") => {
       </div>
 
       <p style="margin-top:15px;color:#666;">
-        You can monitor all users from your admin dashboard.
+        You can monitor all users from your DB.
       </p>
     `);
 
