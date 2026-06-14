@@ -4,8 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
-  sendWelcomeEmail,
-  notifyAdmin
+  sendWelcomeEmail
 } = require("../services/emailServices");
 const { requireFirebaseAdmin } = require("../firebaseAdmin");
 
@@ -214,12 +213,12 @@ const googleAuth = async (req, res) => {
         );
       });
 
-      notifyAdmin(user.email, user.name).catch((err) => {
-        console.error(
-          "Google admin email failed:",
-          err?.message || err
-        );
-      });
+      // notifyAdmin(user.email, user.name).catch((err) => {
+      //   console.error(
+      //     "Google admin email failed:",
+      //     err?.message || err
+      //   );
+      // });
     } 
     // EXISTING USER
     else {
