@@ -1,19 +1,63 @@
 const nodemailer = require("nodemailer");
 
 // Production-ready transporter with robust timeouts + TLS handling.
-// Uses Gmail SMTP only if selected; Render commonly blocks Gmail on 587/587 without strict settings.
-function buildTransporter() {
-  const provider = (process.env.EMAIL_PROVIDER || "gmail").toLowerCase();
+// Fixes: clearer env validation, safer transporter verify (no permanent cached failure).
 
+function getProvider() {
+  return (process.env.EMAIL_PROVIDER || "gmail").toLowerCase();
+}
+
+function getTimeouts() {
   const timeoutMs = Number(process.env.EMAIL_TIMEOUT_MS || 30000);
   const connectionTimeoutMs = Number(process.env.EMAIL_CONNECTION_TIMEOUT_MS || 20000);
+  return { timeoutMs, connectionTimeoutMs };
+}
 
-  // If using Gmail, ensure you use an App Password (not your normal password).
+function assertEmailEnv() {
+  const provider = getProvider();
+
+  if (!process.env.EMAIL_USER) throw new Error("EMAIL_USER is not configured");
+  if (!process.env.EMAIL_PASS) throw new Error("EMAIL_PASS is not configured");
+  if (!process.env.ADMIN_EMAIL) throw new Error("ADMIN_EMAIL is not configured");
+
+  // Provider-specific validation to fail fast with actionable messages.
+  if (provider === "smtp") {
+    if (!process.env.EMAIL_SMTP_HOST) throw new Error("EMAIL_SMTP_HOST is not configured (required for EMAIL_PROVIDER=smtp)");
+    if (!process.env.EMAIL_SMTP_PORT) {
+      // port has a default in transporter, but require host at least.
+    }
+  }
+
+  if (provider === "sendgrid") {
+    // Default host exists, but auth must be present.
+    const user = process.env.EMAIL_SMTP_USER;
+    const pass = process.env.EMAIL_SMTP_PASS;
+    if (!user || !pass) {
+      throw new Error("EMAIL_SMTP_USER and EMAIL_SMTP_PASS are required (EMAIL_PROVIDER=sendgrid)");
+    }
+  }
+}
+
+function buildTransporter() {
+  const provider = getProvider();
+  const { timeoutMs, connectionTimeoutMs } = getTimeouts();
+
+  // If using Gmail or other STARTTLS SMTP ports (commonly 587), secure should usually be false.
+  const portFromEnv = process.env.EMAIL_SMTP_PORT ? Number(process.env.EMAIL_SMTP_PORT) : undefined;
+  const secureFromEnv = process.env.EMAIL_SMTP_SECURE === "true";
+
+  const autoSecure = (() => {
+    if (process.env.EMAIL_SMTP_SECURE !== undefined) return secureFromEnv;
+    // Heuristic: 465 => secure; 587/25 => STARTTLS/plain.
+    if (portFromEnv === 465) return true;
+    return false;
+  })();
+
   if (provider === "gmail") {
     return nodemailer.createTransport({
       host: process.env.EMAIL_SMTP_HOST || "smtp.gmail.com",
       port: Number(process.env.EMAIL_SMTP_PORT || 587),
-      secure: process.env.EMAIL_SMTP_SECURE === "true", // usually false for 587
+      secure: autoSecure,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -28,15 +72,11 @@ function buildTransporter() {
     });
   }
 
-  // Default: use generic SMTP (recommended for Render reliability)
-  // Recommended provider: SendGrid / Mailgun / Resend SMTP gateway.
-  // Env vars expected:
-  // EMAIL_SMTP_HOST, EMAIL_SMTP_PORT, EMAIL_SMTP_USER, EMAIL_SMTP_PASS, EMAIL_SMTP_SECURE
   if (provider === "smtp") {
     return nodemailer.createTransport({
       host: process.env.EMAIL_SMTP_HOST,
       port: Number(process.env.EMAIL_SMTP_PORT || 587),
-      secure: process.env.EMAIL_SMTP_SECURE === "true",
+      secure: autoSecure,
       auth: {
         user: process.env.EMAIL_SMTP_USER || process.env.EMAIL_USER,
         pass: process.env.EMAIL_SMTP_PASS || process.env.EMAIL_PASS,
@@ -51,13 +91,11 @@ function buildTransporter() {
     });
   }
 
-  // Allow choosing SendGrid-style SMTP as a convenience.
-  // (SendGrid SMTP host typically: smtp.sendgrid.net:587)
   if (provider === "sendgrid") {
     return nodemailer.createTransport({
       host: process.env.EMAIL_SMTP_HOST || "smtp.sendgrid.net",
       port: Number(process.env.EMAIL_SMTP_PORT || 587),
-      secure: process.env.EMAIL_SMTP_SECURE === "true",
+      secure: autoSecure,
       auth: {
         user: process.env.EMAIL_SMTP_USER,
         pass: process.env.EMAIL_SMTP_PASS,
@@ -72,11 +110,11 @@ function buildTransporter() {
     });
   }
 
-  // Fallback to Gmail
+  // Fallback to Gmail.
   return nodemailer.createTransport({
     host: process.env.EMAIL_SMTP_HOST || "smtp.gmail.com",
     port: Number(process.env.EMAIL_SMTP_PORT || 587),
-    secure: process.env.EMAIL_SMTP_SECURE === "true",
+    secure: autoSecure,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -92,37 +130,52 @@ function buildTransporter() {
 
 const transporter = buildTransporter();
 
-// If env vars are missing, sending will fail quickly with a clearer error.
-function assertEmailEnv() {
-  if (!process.env.EMAIL_USER) throw new Error("EMAIL_USER is not configured");
-  if (!process.env.EMAIL_PASS) throw new Error("EMAIL_PASS is not configured");
-  if (!process.env.ADMIN_EMAIL) throw new Error("ADMIN_EMAIL is not configured");
+async function verifyTransporter({ force = false } = {}) {
+  // Avoid permanent caching of verification failure.
+  // Cache successful verification, but if it fails we allow future attempts.
+  if (!force && transporter?.__verified) return;
+  if (!force && transporter?.__verifyingPromise) return transporter.__verifyingPromise;
+
+  transporter.__verifyingPromise = (async () => {
+    try {
+      await transporter.verify();
+      transporter.__verified = true;
+      transporter.__verifyError = null;
+    } catch (e) {
+      transporter.__verified = false;
+      transporter.__verifyError = e;
+      throw e;
+    } finally {
+      transporter.__verifyingPromise = null;
+    }
+  })();
+
+  return transporter.__verifyingPromise;
 }
 
-
-async function verifyTransporter() {
-  // Verify only once per cold start.
-  if (transporter?.__verified) return;
-  transporter.__verified = true;
-  try {
-    await transporter.verify();
-  } catch (e) {
-    // Let email functions throw with a useful error.
-    transporter.__verifyError = e;
-  }
+function formatSmtpDebugError() {
+  const provider = getProvider();
+  const host = process.env.EMAIL_SMTP_HOST || (provider === "gmail" ? "smtp.gmail.com" : undefined);
+  const port = process.env.EMAIL_SMTP_PORT || undefined;
+  return { provider, host, port: port ? Number(port) : undefined };
 }
 
 async function sendMailSafe(mailOptions) {
   assertEmailEnv();
-  await verifyTransporter();
-  if (transporter.__verifyError) {
-    const msg = transporter.__verifyError?.message || "SMTP transporter verification failed";
-    throw new Error(msg);
+
+  try {
+    // Verify only once after success.
+    if (!transporter?.__verified) {
+      await verifyTransporter();
+    }
+  } catch (e) {
+    const dbg = formatSmtpDebugError();
+    const errMsg = e?.message || "SMTP transporter verification failed";
+    throw new Error(`${errMsg} | smtp_debug=${JSON.stringify(dbg)}`);
   }
 
   return transporter.sendMail(mailOptions);
 }
-
 
 const sendWelcomeEmail = async (email, name) => {
   try {

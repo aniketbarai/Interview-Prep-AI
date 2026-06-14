@@ -114,31 +114,17 @@ app.use((err, req, res, next) => {
 
 app.get("/test-email", async (req, res) => {
   try {
-    const nodemailer = require("nodemailer");
+    // Uses the same production transporter as emailServices.
+    const { sendWelcomeEmail } = require("./services/emailServices");
 
-  const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+    const email = process.env.EMAIL_USER;
+    const name = "Test";
 
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Test Email",
-      text: "Hello from InterviewPrep AI",
-    });
+    // Send a deterministic message via welcome template.
+    // (Keeping route behavior; transport config is what matters.)
+    await sendWelcomeEmail(email, name);
 
-    console.log("INFO:", info);
-
-    res.json({
-      success: true,
-      info,
-    });
+    res.json({ success: true });
   } catch (err) {
     console.error("EMAIL ERROR:", err);
 
@@ -154,6 +140,10 @@ app.get("/email-debug", (req, res) => {
     hasPass: !!process.env.EMAIL_PASS,
   });
 });
+
+
+
+
 
 // start server
 const PORT = process.env.PORT || 5000;
