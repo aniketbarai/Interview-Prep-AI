@@ -172,8 +172,13 @@ const googleAuth = async (req, res) => {
     const email = sanitizeEmail(decoded.email);
 
     if (!email) {
-      console.error(`[${correlationId}] verifyIdToken decoded missing email`, decoded);
-      return res.status(400).json({ message: "Firebase token missing email" });
+      console.error(
+        `[${correlationId}] verifyIdToken decoded missing email`,
+        decoded
+      );
+      return res.status(400).json({
+        message: "Firebase token missing email",
+      });
     }
 
     const name =
@@ -190,6 +195,7 @@ const googleAuth = async (req, res) => {
 
     let user = await User.findOne({ email });
 
+    // NEW USER
     if (!user) {
       user = await User.create({
         name,
@@ -199,7 +205,24 @@ const googleAuth = async (req, res) => {
         authProvider: "google",
         emailVerified: true,
       });
-    } else {
+
+      // Send emails only once when account is created
+      sendWelcomeEmail(user.email, user.name).catch((err) => {
+        console.error(
+          "Google welcome email failed:",
+          err?.message || err
+        );
+      });
+
+      notifyAdmin(user.email, user.name).catch((err) => {
+        console.error(
+          "Google admin email failed:",
+          err?.message || err
+        );
+      });
+    } 
+    // EXISTING USER
+    else {
       let changed = false;
 
       if (uid && user.googleId !== uid) {
@@ -212,7 +235,7 @@ const googleAuth = async (req, res) => {
         changed = true;
       }
 
-      if (user.authProvider !== "google" && user.googleId) {
+      if (user.authProvider !== "google") {
         user.authProvider = "google";
         changed = true;
       }
@@ -221,10 +244,7 @@ const googleAuth = async (req, res) => {
         await user.save();
       }
     }
-    sendWelcomeEmail(user.email, user.name).catch(console.error);
-    notifyAdmin(user.email, user.name).catch((err) => {
-        console.error("Admin email failed:", err?.message || err);
-      });
+
     return res.json(buildAuthResponse(user));
   } catch (error) {
     console.error(`[${correlationId}] Google auth failed:`, {

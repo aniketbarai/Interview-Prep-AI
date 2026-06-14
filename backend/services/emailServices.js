@@ -20,6 +20,7 @@ const transporter = nodemailer.createTransport({
 
 const sendWelcomeEmail = async (email, name) => {
   try {
+    console.log("Attempting welcome email to:", email);
     const info = await transporter.sendMail({
       from: `"InterviewPrep AI" <${process.env.ADMIN_EMAIL}>`,
       to: email,
@@ -46,8 +47,8 @@ const sendWelcomeEmail = async (email, name) => {
       `,
     });
 
-    console.log("Welcome email sent:", info.messageId);
-    console.log("Response:", info.response);
+   console.log("Email sent:", info.messageId);
+    console.log("Brevo response:", info.response);
 
     return info;
   } catch (error) {
