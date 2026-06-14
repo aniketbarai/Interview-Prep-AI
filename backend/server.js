@@ -23,7 +23,6 @@ const requiredEnv = [
   "FIREBASE_PROJECT_ID",
   "FIREBASE_CLIENT_EMAIL",
   "FIREBASE_PRIVATE_KEY",
-  // Career assistant requires OpenRouter key
   "OPENROUTER_API_KEY",
 ];
 
