@@ -12,6 +12,9 @@ const questionRoutes = require("./routes/questionRoutes");
 const careerAssistantRoutes = require("./routes/careerAssistantRoutes");
 const { protect } = require("./middlewares/authMiddleware");
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
+const {
+  sendWelcomeEmail,
+} = require("./services/emailServices");
 
 
 const app = express();
@@ -106,6 +109,28 @@ app.use((err, req, res, next) => {
   res.status(status).json({
     message: status === 500 ? "Internal Server Error" : err.message || "Request failed",
   });
+});
+
+
+app.get("/test-email", async (req, res) => {
+  try {
+    await sendWelcomeEmail(
+      process.env.EMAIL_USER,
+      "Aniket"
+    );
+
+    res.json({
+      success: true,
+      message: "Email sent successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 // start server

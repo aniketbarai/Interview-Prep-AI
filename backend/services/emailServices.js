@@ -83,7 +83,6 @@ const sendLoginEmail = async (email, name) => {
 };
 
 module.exports = {
-  transporter,
   sendWelcomeEmail,
   notifyAdmin,
   sendLoginEmail
