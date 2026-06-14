@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { CAREER_ASSISTANT_API } from "../../../services/careerAssistantServices";
 import CareerAssistantPageLayout from "../../../components/layouts/CareerAssistantPageLayout";
+import ProgressLoader from "../../../components/common/ProgressLoader";
+import useSimulatedProgress from "../../../hooks/useSimulatedProgress";
+
 
 const ErrorBox = ({ message }) =>
   message ? (
@@ -140,7 +143,18 @@ const CareerAdvisorPage = () => {
 
           <div className="lg:col-span-7 min-w-0">
             <AnimatePresence mode="wait">
-              {loading && <FunLoader text="Mapping out your path..." />}
+              {loading && (
+                <ProgressLoader
+                  fullscreen
+                  isLoading={true}
+                  title="🤖 AI Assistant"
+                  progress={progress}
+                  status={status}
+                  estimatedTime={estimatedTime}
+                  type="advisor"
+                  success={progressSuccess}
+                />
+              )}
 
               {!loading && result && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
