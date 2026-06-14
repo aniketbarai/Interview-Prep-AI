@@ -29,7 +29,7 @@ const sendWelcomeEmail = async (email, name) => {
         </div>
       `,
     });
-
+    console.log(response);
     return response;
   } catch (error) {
     console.error("Welcome Email Error:", error);
