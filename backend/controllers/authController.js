@@ -5,7 +5,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
   sendWelcomeEmail,
-  notifyAdmin,
 } = require("../services/emailServices");
 const { requireFirebaseAdmin } = require("../firebaseAdmin");
 
@@ -80,12 +79,6 @@ const registerUser = async (req, res) => {
       sendWelcomeEmail(user.email, user.name).catch((err) => {
         console.error("Welcome email failed:", err?.message || err);
       });
-
-      notifyAdmin(user.email, user.name).catch((err) => {
-        console.error("Admin email failed:", err?.message || err);
-      });
-
-
     return res.status(201).json(buildAuthResponse(user));
   } catch (error) {
     console.error("Register user failed:", error);
@@ -221,7 +214,7 @@ const googleAuth = async (req, res) => {
         await user.save();
       }
     }
-
+    sendWelcomeEmail(user.email, user.name).catch(console.error);
     return res.json(buildAuthResponse(user));
   } catch (error) {
     console.error(`[${correlationId}] Google auth failed:`, {
