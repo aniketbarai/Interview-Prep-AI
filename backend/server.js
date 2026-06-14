@@ -24,7 +24,7 @@ const requiredEnv = [
   "FIREBASE_PRIVATE_KEY",
   "OPENROUTER_API_KEY",
   "EMAIL_USER",
-  "ADMIN_MAIL",
+  "ADMIN_EMAIL",
   "EMAIL_PASS",
 ];
 
