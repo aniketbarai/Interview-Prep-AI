@@ -12,7 +12,6 @@ const questionRoutes = require("./routes/questionRoutes");
 const careerAssistantRoutes = require("./routes/careerAssistantRoutes");
 const { protect } = require("./middlewares/authMiddleware");
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
-const { transporter } = require("./services/emailServices");
 
 
 const app = express();
@@ -24,6 +23,9 @@ const requiredEnv = [
   "FIREBASE_CLIENT_EMAIL",
   "FIREBASE_PRIVATE_KEY",
   "OPENROUTER_API_KEY",
+  "EMAIL_USER",
+  "ADMIN_MAIL",
+  "EMAIL_PASS",
 ];
 
 
@@ -104,14 +106,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({
     message: status === 500 ? "Internal Server Error" : err.message || "Request failed",
   });
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("Email verification failed:", error.message);
-  } else {
-    console.log("Email server ready");
-  }
 });
 
 // start server
