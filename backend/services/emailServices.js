@@ -1,11 +1,17 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 const sendWelcomeEmail = async (email, name) => {
   try {
-    const response = await resend.emails.send({
-      from: "InterviewPrep AI <onboarding@resend.dev>",
+    const info = await transporter.sendMail({
+      from: `"InterviewPrep AI" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "🎉 Welcome to InterviewPrep AI",
       html: `
@@ -23,23 +29,23 @@ const sendWelcomeEmail = async (email, name) => {
             <li>Prepare for HR Interviews</li>
           </ul>
 
-          <p>We're excited to help you grow your career.</p>
+          <p>Happy Learning 🚀</p>
 
           <p>Team InterviewPrep AI</p>
         </div>
       `,
     });
-    console.log(response);
-    return response;
+
+    console.log("Welcome email sent:", info.messageId);
   } catch (error) {
-    console.error("Welcome Email Error:", error);
+    console.error("Welcome email error:", error);
   }
 };
 
 const notifyAdmin = async (email, name) => {
   try {
-    const response = await resend.emails.send({
-      from: "InterviewPrep AI <onboarding@resend.dev>",
+    const info = await transporter.sendMail({
+      from: `"InterviewPrep AI" <${process.env.EMAIL_USER}>`,
       to: process.env.ADMIN_EMAIL,
       subject: "🆕 New User Registration",
       html: `
@@ -51,16 +57,16 @@ const notifyAdmin = async (email, name) => {
       `,
     });
 
-    return response;
+    console.log("Admin notification sent:", info.messageId);
   } catch (error) {
-    console.error("Admin Notification Error:", error);
+    console.error("Admin email error:", error);
   }
 };
 
 const sendLoginEmail = async (email, name) => {
   try {
-    await resend.emails.send({
-      from: "InterviewPrep AI <onboarding@resend.dev>",
+    await transporter.sendMail({
+      from: `"InterviewPrep AI" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "👋 Welcome Back",
       html: `
@@ -68,11 +74,11 @@ const sendLoginEmail = async (email, name) => {
 
         <p>You have successfully logged in.</p>
 
-        <p>Enjoy your learning journey!</p>
+        <p>Good luck with your interview preparation 🚀</p>
       `,
     });
   } catch (error) {
-    console.error("Login Email Error:", error);
+    console.error(error);
   }
 };
 
