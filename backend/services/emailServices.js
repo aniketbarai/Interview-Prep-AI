@@ -39,7 +39,7 @@ const sendWelcomeEmail = async (email, name) => {
 const notifyAdmin = async (email, name) => {
   try {
     const response = await resend.emails.send({
-      from: "InterviewPrep AI <noreply@yourdomain.com>",
+      from: "InterviewPrep AI <onboarding@resend.dev>",
       to: process.env.ADMIN_EMAIL,
       subject: "🆕 New User Registration",
       html: `
