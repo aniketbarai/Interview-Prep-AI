@@ -4,7 +4,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  notifyAdmin
 } = require("../services/emailServices");
 const { requireFirebaseAdmin } = require("../firebaseAdmin");
 
@@ -171,13 +172,8 @@ const googleAuth = async (req, res) => {
     const email = sanitizeEmail(decoded.email);
 
     if (!email) {
-      console.error(
-        `[${correlationId}] verifyIdToken decoded missing email`,
-        decoded
-      );
-      return res.status(400).json({
-        message: "Firebase token missing email",
-      });
+      console.error(`[${correlationId}] verifyIdToken decoded missing email`, decoded);
+      return res.status(400).json({ message: "Firebase token missing email" });
     }
 
     const name =
@@ -194,7 +190,6 @@ const googleAuth = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    // NEW USER
     if (!user) {
       user = await User.create({
         name,
@@ -204,24 +199,7 @@ const googleAuth = async (req, res) => {
         authProvider: "google",
         emailVerified: true,
       });
-
-      // Send emails only once when account is created
-      sendWelcomeEmail(user.email, user.name).catch((err) => {
-        console.error(
-          "Google welcome email failed:",
-          err?.message || err
-        );
-      });
-
-      // notifyAdmin(user.email, user.name).catch((err) => {
-      //   console.error(
-      //     "Google admin email failed:",
-      //     err?.message || err
-      //   );
-      // });
-    } 
-    // EXISTING USER
-    else {
+    } else {
       let changed = false;
 
       if (uid && user.googleId !== uid) {
@@ -234,7 +212,7 @@ const googleAuth = async (req, res) => {
         changed = true;
       }
 
-      if (user.authProvider !== "google") {
+      if (user.authProvider !== "google" && user.googleId) {
         user.authProvider = "google";
         changed = true;
       }
@@ -243,8 +221,50 @@ const googleAuth = async (req, res) => {
         await user.save();
       }
     }
+    let user = await User.findOne({ email });
 
-    return res.json(buildAuthResponse(user));
+if (!user) {
+  user = await User.create({
+    name,
+    email,
+    profileImageUrl: picture,
+    googleId: uid,
+    authProvider: "google",
+    emailVerified: true,
+  });
+
+  // Only for newly created Google users
+  sendWelcomeEmail(user.email, user.name).catch((err) => {
+    console.error("Google welcome email failed:", err?.message || err);
+  });
+
+  notifyAdmin(user.email, user.name).catch((err) => {
+    console.error("Google admin email failed:", err?.message || err);
+  });
+
+} else {
+  let changed = false;
+
+  if (uid && user.googleId !== uid) {
+    user.googleId = uid;
+    changed = true;
+  }
+
+  if (picture && !user.profileImageUrl) {
+    user.profileImageUrl = picture;
+    changed = true;
+  }
+
+  if (user.authProvider !== "google" && user.googleId) {
+    user.authProvider = "google";
+    changed = true;
+  }
+
+  if (changed) {
+    await user.save();
+  }
+}
+return res.json(buildAuthResponse(user));
   } catch (error) {
     console.error(`[${correlationId}] Google auth failed:`, {
       message: error?.message,
