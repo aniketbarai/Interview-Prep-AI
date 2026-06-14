@@ -10,7 +10,7 @@ console.log("EMAIL CONFIG:", {
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: 587,
+  port: 465,
   secure: false,
   requireTLS: true,
 
