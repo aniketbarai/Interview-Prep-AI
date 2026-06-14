@@ -13,7 +13,6 @@ const questionRoutes = require("./routes/questionRoutes");
 const careerAssistantRoutes = require("./routes/careerAssistantRoutes");
 const { protect } = require("./middlewares/authMiddleware");
 const { generateInterviewQuestions, generateConceptExplanation } = require("./controllers/aiController");
-const { transporter } = require("./services/emailServices");
 
 
 const app = express();
@@ -110,14 +109,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({
     message: status === 500 ? "Internal Server Error" : err.message || "Request failed",
   });
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP VERIFY ERROR:", error);
-  } else {
-    console.log("SMTP READY");
-  }
 });
 
 // start server
