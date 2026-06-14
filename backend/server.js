@@ -114,23 +114,43 @@ app.use((err, req, res, next) => {
 
 app.get("/test-email", async (req, res) => {
   try {
-    await sendWelcomeEmail(
-      process.env.EMAIL_USER,
-      "Aniket"
-    );
+    const nodemailer = require("nodemailer");
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: "Test Email",
+      text: "Hello from InterviewPrep AI",
+    });
+
+    console.log("INFO:", info);
 
     res.json({
       success: true,
-      message: "Email sent successfully",
+      info,
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("EMAIL ERROR:", err);
 
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: err.message,
     });
   }
+});
+app.get("/email-debug", (req, res) => {
+  res.json({
+    emailUser: process.env.EMAIL_USER,
+    hasPass: !!process.env.EMAIL_PASS,
+  });
 });
 
 // start server
