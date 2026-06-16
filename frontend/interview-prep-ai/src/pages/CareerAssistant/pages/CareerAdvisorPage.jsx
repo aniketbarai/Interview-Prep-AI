@@ -70,6 +70,16 @@ const CareerAdvisorPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState(null);
 
+  const { progress, status, estimatedTime, success: progressSuccess, start, onComplete, stopWithError } = useSimulatedProgress({
+    startOnMount: false,
+    messages: [
+      { at: 0, text: "Analyzing your request..." },
+      { at: 40, text: "Building your roadmap structure..." },
+      { at: 70, text: "Identifying skill gaps & recommendations..." },
+      { at: 90, text: "Finalizing your plan..." },
+    ],
+  });
+
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (!skills.trim()) {
@@ -80,16 +90,24 @@ const CareerAdvisorPage = () => {
     setLoading(true);
     setErrorMsg("");
     setResult(null);
+    start();
 
     try {
       const res = await CAREER_ASSISTANT_API.careerAdvisor({ role, experience, skills });
-      setResult(res.data?.data || res.data);
+      // backend returns: { success: true, report, data }
+      const payload = res?.data;
+      setResult(payload?.data ?? payload);
+      await onComplete();
+
     } catch (err) {
-      setErrorMsg(err?.response?.data?.message || "Couldn't build a roadmap. Try again.");
+      const msg = err?.response?.data?.message || "Couldn't build a roadmap. Try again.";
+      setErrorMsg(msg);
+      stopWithError(msg);
     } finally {
       setLoading(false);
     }
   };
+
 
   const timeline = Array.isArray(result?.roadmap) ? result.roadmap : [];
 

@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Home/Dashboard";
@@ -162,6 +163,7 @@ const App = () => {
           },
         }}
       />
+      <SpeedInsights />
     </UserProvider>
   );
 };
