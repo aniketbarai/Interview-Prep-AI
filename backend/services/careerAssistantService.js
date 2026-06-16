@@ -37,11 +37,23 @@ const getClient = () => {
 };
 
 const safeJsonParse = (rawText) => {
-  const cleanedText = (rawText || "")
+  const input = rawText || "";
+
+  // 1) Strip markdown fences if present
+  let cleanedText = input
     .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
     .replace(/```$/i, "")
     .trim();
 
+  // 2) If the model returned extra text, extract the first {...} block
+  const firstBrace = cleanedText.indexOf("{");
+  if (firstBrace > 0) cleanedText = cleanedText.slice(firstBrace);
+
+  // 3) Remove trailing commas before } or ] (common LLM JSON issue)
+  cleanedText = cleanedText.replace(/,\s*([}\]])/g, "$1");
+
+  // 4) Final attempt
   return JSON.parse(cleanedText);
 };
 

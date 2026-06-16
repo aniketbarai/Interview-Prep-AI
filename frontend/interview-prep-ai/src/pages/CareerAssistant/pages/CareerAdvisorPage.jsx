@@ -106,8 +106,9 @@ const CareerAdvisorPage = () => {
       // backend returns: { success: true, report, data }
       const payload = res?.data;
       setResult(payload?.data ?? payload);
-      // Ensure UI loader transitions off the 95% hold state
-      await onComplete();
+      // If API finishes quickly, don't wait for the simulated 100% animation.
+      // We just want to reveal the answer.
+      onComplete();
 
     } catch (err) {
       const msg = err?.response?.data?.message || "Couldn't build a roadmap. Try again.";
