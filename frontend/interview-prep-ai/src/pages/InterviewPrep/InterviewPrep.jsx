@@ -92,6 +92,7 @@ const InterviewPrep = () => {
   };
 
   const uploadMoreQuestions = async () => {
+    if (isLoading) return;
     try {
       setLoadingMessage("Generating AI questions...");
       setIsLoading(true);
