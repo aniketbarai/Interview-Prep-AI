@@ -70,7 +70,16 @@ const CareerAdvisorPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState(null);
 
-  const { progress, status, estimatedTime, success: progressSuccess, start, onComplete, stopWithError } = useSimulatedProgress({
+  const {
+    progress,
+    status,
+    estimatedTime,
+    success: progressSuccess,
+    start,
+    onComplete,
+    stopWithError,
+    setError,
+  } = useSimulatedProgress({
     startOnMount: false,
     messages: [
       { at: 0, text: "Analyzing your request..." },
