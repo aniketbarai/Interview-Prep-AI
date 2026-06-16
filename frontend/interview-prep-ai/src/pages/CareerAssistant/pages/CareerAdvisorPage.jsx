@@ -97,6 +97,7 @@ const CareerAdvisorPage = () => {
       // backend returns: { success: true, report, data }
       const payload = res?.data;
       setResult(payload?.data ?? payload);
+      // Ensure UI loader transitions off the 95% hold state
       await onComplete();
 
     } catch (err) {
@@ -104,6 +105,7 @@ const CareerAdvisorPage = () => {
       setErrorMsg(msg);
       stopWithError(msg);
     } finally {
+      // Hide loader reliably even if the simulated completion animation is delayed.
       setLoading(false);
     }
   };
